@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:tns="http://mtis.org/ServicioProcesoSolicitudRepuestos/"
+                  targetNamespace="http://mtis.org/ServicioProcesoSolicitudRepuestos/">
+
+    <wsdl:types>
+        <xs:schema targetNamespace="http://mtis.org/ServicioProcesoSolicitudRepuestos/" elementFormDefault="qualified">
+            <xs:element name="ProcesarSolicitudRepuestosRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="WSKey" type="xs:string"/>
+                        <xs:element name="idConcesionario" type="xs:int"/>
+                        <xs:element name="diagnostico" type="xs:string"/>
+                        <xs:element name="listaPiezasRequeridas" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ProcesarSolicitudRepuestosResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="exito" type="xs:boolean"/>
+                        <xs:element name="mensaje" type="xs:string"/>
+                        <xs:element name="fechaRecepcionEsperada" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="ProcesarSolicitudRepuestosRequestMessage">
+        <wsdl:part name="parameters" element="tns:ProcesarSolicitudRepuestosRequest"/>
+    </wsdl:message>
+    <wsdl:message name="ProcesarSolicitudRepuestosResponseMessage">
+        <wsdl:part name="parameters" element="tns:ProcesarSolicitudRepuestosResponse"/>
+    </wsdl:message>
+
+    <wsdl:portType name="ServicioProcesoSolicitudRepuestosPortType">
+        <wsdl:operation name="ProcesarSolicitudRepuestos">
+            <wsdl:input message="tns:ProcesarSolicitudRepuestosRequestMessage"/>
+            <wsdl:output message="tns:ProcesarSolicitudRepuestosResponseMessage"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="ServicioProcesoSolicitudRepuestosSoapBinding" type="tns:ServicioProcesoSolicitudRepuestosPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="ProcesarSolicitudRepuestos">
+            <soap:operation soapAction="http://mtis.org/ServicioProcesoSolicitudRepuestos/ProcesarSolicitudRepuestos"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="ServicioProcesoSolicitudRepuestos">
+        <wsdl:port name="ServicioProcesoSolicitudRepuestosPort" binding="tns:ServicioProcesoSolicitudRepuestosSoapBinding">
+            <soap:address location="http://localhost:8090/mtisp1/services/ServicioProcesoSolicitudRepuestos"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

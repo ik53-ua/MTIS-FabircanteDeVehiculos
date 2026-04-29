@@ -1,0 +1,232 @@
+openapi: 3.0.0
+info:
+  title: API de Producción y Reabastecimiento
+  version: 1.0.0
+  description: Contrato REST para el proceso de Reabastecimiento Automático de Componentes (Punto 2.4).
+servers:
+  - url: http://localhost:8080/api/produccion/v1
+    description: Servidor Local - Producción
+
+paths:
+  # ==========================================
+  # RECURSO PRINCIPAL: PEDIDOS DE COMPRA
+  # ==========================================
+  /pedidosCompra:
+    post:
+      summary: Crear orden de compra automática
+      description: Genera una orden de compra automáticamente. Orquestador del proceso.
+      parameters:
+        - $ref: '#/components/parameters/WSKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoCompraRequest'
+      responses:
+        '201':
+          description: Orden de compra generada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoCompraResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+
+  /pedidosCompra/{id}:
+    get:
+      summary: Consultar orden de compra
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Información del pedido obtenida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoCompraResponse'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+  # ==========================================
+  # RECURSO: INVENTARIO
+  # ==========================================
+  /inventario/{componenteId}:
+    get:
+      summary: Consultar stock de un componente
+      parameters:
+        - name: componenteId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Nivel de inventario obtenido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventarioResponse'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+  # ==========================================
+  # RECURSO: COMPONENTES
+  # ==========================================
+  /componentes/{id}:
+    get:
+      summary: Obtener información del componente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Información del componente obtenida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponenteResponse'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+  # ==========================================
+  # RECURSO: PROVEEDORES
+  # ==========================================
+  /proveedores/{id}:
+    get:
+      summary: Consultar datos del proveedor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Datos del proveedor obtenidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProveedorResponse'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+  # ==========================================
+  # RECURSO: PLANIFICACIÓN DE PRODUCCIÓN
+  # ==========================================
+  /planificacionProduccion/{id}:
+    put:
+      summary: Actualizar planificación
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanificacionUpdateRequest'
+      responses:
+        '200':
+          description: Planificación actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaBase'
+        '400':
+          $ref: '#/components/responses/Error400'
+
+# ==========================================
+# COMPONENTES 
+# ==========================================
+components:
+  parameters:
+    WSKey:
+      name: WSKey
+      in: query
+      description: Clave de acceso requerida para realizar la operación.
+      required: true
+      schema:
+        type: string
+
+  responses:
+    Error400:
+      description: Error en la petición (ej. clave WSKey inválida, recurso no encontrado)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RespuestaBase'
+
+  schemas:
+    RespuestaBase:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          description: Resultado de la operación o detalle del error.
+
+    PedidoCompraRequest:
+      type: object
+      properties:
+        componenteId:
+          type: string
+        cantidadRequerida:
+          type: integer
+          
+    PedidoCompraResponse:
+      type: object
+      properties:
+        pedidoId:
+          type: string
+        estado:
+          type: string
+
+    InventarioResponse:
+      type: object
+      properties:
+        componenteId:
+          type: string
+        cantidadActual:
+          type: integer
+
+    ComponenteResponse:
+      type: object
+      properties:
+        componenteId:
+          type: string
+        nombre:
+          type: string
+        proveedorId:
+          type: string
+
+    ProveedorResponse:
+      type: object
+      properties:
+        proveedorId:
+          type: string
+        nombreEmpresa:
+          type: string
+
+    PlanificacionUpdateRequest:
+      type: object
+      properties:
+        estadoProduccion:
+          type: string
+        nuevaFechaReanudacion:
+          type: string
+          format: date

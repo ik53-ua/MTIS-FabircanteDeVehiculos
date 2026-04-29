@@ -1,0 +1,335 @@
+openapi: 3.0.0
+info:
+  title: API de Ventas y Facturación
+  version: 1.0.0
+  description: Contrato REST para el proceso de Registro y Cierre de Venta Final (Punto 2.5). 
+servers:
+  - url: http://localhost:8080/api/ventas/v1
+    description: Servidor Local - Ventas
+
+paths:
+  # ==========================================
+  # RECURSO PRINCIPAL: VENTAS
+  # ==========================================
+  /ventas:
+    post:
+      summary: Registrar venta del vehículo
+      description: Registrar la venta del vehículo. Orquestador del proceso.
+      parameters:
+        - $ref: '#/components/parameters/WSKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VentaRequest'
+      responses:
+        '201':
+          description: Venta registrada con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VentaResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+
+  /ventas/{id}:
+    get:
+      summary: Consultar venta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Datos de la venta obtenidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VentaResponse'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+  # ==========================================
+  # RECURSO: FACTURAS
+  # ==========================================
+  /facturas:
+    post:
+      summary: Generar factura
+      parameters:
+        - $ref: '#/components/parameters/WSKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FacturaRequest'
+      responses:
+        '201':
+          description: Factura generada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacturaResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+
+  /facturas/{id}:
+    get:
+      summary: Consultar factura
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Datos de la factura obtenidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacturaResponse'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+  # ==========================================
+  # RECURSO: PAGOS
+  # ==========================================
+  /pagos:
+    post:
+      summary: Registrar pago
+      parameters:
+        - $ref: '#/components/parameters/WSKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagoRequest'
+      responses:
+        '201':
+          description: Pago procesado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagoResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+
+  /pagos/{id}:
+    get:
+      summary: Consultar pago
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Datos del pago obtenidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagoResponse'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+  # ==========================================
+  # RECURSO: INVENTARIO
+  # ==========================================
+  /inventario/{vehiculoId}:
+    put:
+      summary: Actualizar estado del vehículo
+      parameters:
+        - name: vehiculoId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventarioUpdateRequest'
+      responses:
+        '200':
+          description: Inventario actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaBase'
+        '400':
+          $ref: '#/components/responses/Error400'
+
+    get:
+      summary: Consultar inventario del vehículo
+      parameters:
+        - name: vehiculoId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Estado del vehículo obtenido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaBase'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+  # ==========================================
+  # RECURSO: GARANTÍAS
+  # ==========================================
+  /garantias:
+    post:
+      summary: Activar garantía
+      parameters:
+        - $ref: '#/components/parameters/WSKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GarantiaRequest'
+      responses:
+        '201':
+          description: Garantía activada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GarantiaResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+
+  /garantias/{vehiculoId}:
+    get:
+      summary: Consultar garantía
+      parameters:
+        - name: vehiculoId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/WSKey'
+      responses:
+        '200':
+          description: Datos de la garantía obtenidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GarantiaResponse'
+        '404':
+          $ref: '#/components/responses/Error400'
+
+# ==========================================
+# COMPONENTES 
+# ==========================================
+components:
+  parameters:
+    WSKey:
+      name: WSKey
+      in: query
+      description: Clave de acceso requerida para realizar la operación.
+      required: true
+      schema:
+        type: string
+
+  responses:
+    Error400:
+      description: Error en la petición (ej. clave WSKey inválida, recurso no encontrado)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RespuestaBase'
+
+  schemas:
+    RespuestaBase:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          description: Resultado de la operación o detalle del error.
+
+    VentaRequest:
+      type: object
+      properties:
+        vehiculoId:
+          type: string
+        clienteId:
+          type: string
+        precioTotal:
+          type: number
+          
+    VentaResponse:
+      type: object
+      properties:
+        ventaId:
+          type: string
+        estado:
+          type: string
+
+    FacturaRequest:
+      type: object
+      properties:
+        ventaId:
+          type: string
+        importe:
+          type: number
+
+    FacturaResponse:
+      type: object
+      properties:
+        facturaId:
+          type: string
+        estado:
+          type: string
+
+    PagoRequest:
+      type: object
+      properties:
+        facturaId:
+          type: string
+        cantidad:
+          type: number
+
+    PagoResponse:
+      type: object
+      properties:
+        pagoId:
+          type: string
+        estado:
+          type: string
+
+    InventarioUpdateRequest:
+      type: object
+      properties:
+        estadoVehiculo:
+          type: string
+
+    GarantiaRequest:
+      type: object
+      properties:
+        vehiculoId:
+          type: string
+        duracionMeses:
+          type: integer
+
+    GarantiaResponse:
+      type: object
+      properties:
+        garantiaId:
+          type: string
+        estado:
+          type: string
