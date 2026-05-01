@@ -1,13 +1,8 @@
 package es.ua.mtis.fabricanteDeVehiculos.config;
 
 import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_1.*;
-import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_2.ServicioCalculoCostesImpl;
-import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_2.ServicioConfiguracionesVehiculoImpl;
-import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_2.ServicioGeneracionOrdenProduccionImpl;
-import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_2.ServicioNotificacionesPedidoImpl;
-import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_2.ServicioPlanificacionProduccionImpl;
-import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_2.ServicioProcesoPedidoFabricacionImpl;
-import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_2.ServicioRegistroPedidosImpl;
+import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_2.*;
+import es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_3.*;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxws.EndpointImpl;
@@ -65,6 +60,26 @@ public class CxfConfig {
 
     @Autowired
     private ServicioRegistroPedidosImpl registroPedidosImpl;
+
+    /*----------------------------------------- Proceso 2.3 ------------------------------------------ */
+
+    @Autowired
+    private ServicioCatalogoPiezasImpl catalogoPiezasImpl;
+
+    @Autowired
+    private ServicioLogisticaEnviosImpl logisticaEnviosImpl;
+
+    @Autowired
+    private ServicioNotificacionesEntregaImpl notificacionesEntregaImpl;
+
+    @Autowired
+    private ServicioPedidosRepuestosImpl pedidosRepuestosImpl;
+
+    @Autowired
+    private ServicioProcesoSolicitudRepuestosImpl procesoSolicitudRepuestosImpl;
+
+    @Autowired
+    private ServicioStockRepuestosImpl stockRepuestosImpl;
 
 
     /*----------------------------------------- Proceso 2.1 ------------------------------------------ */
@@ -165,6 +180,49 @@ public class CxfConfig {
     public Endpoint endpointRegistroPedidos() {
         EndpointImpl endpoint = new EndpointImpl(bus, registroPedidosImpl);
         endpoint.publish("/ServicioRegistroPedidos");
+        return endpoint;
+    }
+
+    /*----------------------------------------- Proceso 2.3 ------------------------------------------ */
+    @Bean
+    public Endpoint endpointCatalogoPiezas() {
+        EndpointImpl endpoint = new EndpointImpl(bus, catalogoPiezasImpl);
+        endpoint.publish("/ServicioCatalogoPiezas");
+        return endpoint;
+    }
+
+    @Bean
+    public Endpoint endpointLogisticaEnvios() {
+        EndpointImpl endpoint = new EndpointImpl(bus, logisticaEnviosImpl);
+        endpoint.publish("/ServicioLogisticaEnvios");
+        return endpoint;
+    }
+
+    @Bean
+    public Endpoint endpointNotificacionesEntrega() {
+        EndpointImpl endpoint = new EndpointImpl(bus, notificacionesEntregaImpl);
+        endpoint.publish("/ServicioNotificacionesEntrega");
+        return endpoint;
+    }
+
+    @Bean
+    public Endpoint endpointPedidosRepuestos() {
+        EndpointImpl endpoint = new EndpointImpl(bus, pedidosRepuestosImpl);
+        endpoint.publish("/ServicioPedidosRepuestos");
+        return endpoint;
+    }
+
+    @Bean
+    public Endpoint endpointProcesoSolicitudRepuestos() {
+        EndpointImpl endpoint = new EndpointImpl(bus, procesoSolicitudRepuestosImpl);
+        endpoint.publish("/ServicioProcesoSolicitudRepuestos");
+        return endpoint;
+    }
+
+    @Bean
+    public Endpoint endpointStockRepuestos() {
+        EndpointImpl endpoint = new EndpointImpl(bus, stockRepuestosImpl);
+        endpoint.publish("/ServicioStockRepuestos");
         return endpoint;
     }
 }

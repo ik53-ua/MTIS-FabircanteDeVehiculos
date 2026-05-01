@@ -64,6 +64,17 @@
 			<artifactId>jackson-databind-nullable</artifactId>
 			<version>0.2.6</version>
 		</dependency>
+
+		<!-- Dependencias para Base de Datos H2 y JPA -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -90,6 +101,10 @@
 								<!-- ========================================== -->
 								<wsdlOption>
 									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_1/ServicioNotificaciones.wsdl</wsdl>
+									<extraargs>
+										<extraarg>-p</extraarg>
+										<extraarg>org.mtis.servicionotificaciones.p21</extraarg>
+									</extraargs>
 								</wsdlOption>
 								<wsdlOption>
 									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_1/ServicioProcesoReservaVehiculo.wsdl</wsdl>
@@ -133,6 +148,32 @@
 								</wsdlOption>
 								<wsdlOption>
 									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_2/ServicioRegistroPedidos.wsdl</wsdl>
+								</wsdlOption>
+
+								<!-- ========================================== -->
+								<!-- SERVICIOS DEL PROCESO 2.3                  -->
+								<!-- ========================================== -->
+								<wsdlOption>
+									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_3/ServicioCatalogoPiezas.wsdl</wsdl>
+								</wsdlOption>
+								<wsdlOption>
+									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_3/ServicioLogisticaEnvios.wsdl</wsdl>
+								</wsdlOption>
+								<wsdlOption>
+									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_3/ServicioNotificaciones.wsdl</wsdl>
+									<extraargs>
+										<extraarg>-p</extraarg>
+										<extraarg>org.mtis.servicionotificaciones.p23</extraarg>
+									</extraargs>
+								</wsdlOption>
+								<wsdlOption>
+									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_3/ServicioPedidosRepuestos.wsdl</wsdl>
+								</wsdlOption>
+								<wsdlOption>
+									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_3/ServicioProcesoSolicitudRepuestos.wsdl</wsdl>
+								</wsdlOption>
+								<wsdlOption>
+									<wsdl>${basedir}/src/main/resources/wsdl/Proceso2_3/ServicioStockRepuestos.wsdl</wsdl>
 								</wsdlOption>
 							</wsdlOptions>
 						</configuration>

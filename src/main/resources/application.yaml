@@ -1,3 +1,17 @@
 spring:
-  application:
-    name: fabricanteDeVehiculos
+  datasource:
+    url: jdbc:h2:mem:mtisdb;DB_CLOSE_DELAY=-1
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
