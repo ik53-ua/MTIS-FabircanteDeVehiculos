@@ -1,10 +1,14 @@
 package es.ua.mtis.fabricanteDeVehiculos.soap.proceso2_1;
 
+import es.ua.mtis.fabricanteDeVehiculos.entity.StockConcesionario;
+import es.ua.mtis.fabricanteDeVehiculos.repository.StockConcesionarioRepository;
 import org.mtis.serviciostockconcesionario.ServicioStockConcesionarioPortType;
 import org.mtis.serviciostockconcesionario.ConsultarStockConcesionarioRequest;
 import org.mtis.serviciostockconcesionario.ConsultarStockConcesionarioResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.jws.WebService;
+import java.util.Optional;
 
 @Service
 @WebService(
@@ -15,25 +19,32 @@ import jakarta.jws.WebService;
 )
 public class ServicioStockConcesionarioImpl implements ServicioStockConcesionarioPortType {
 
+    // ¡Inyectamos la conexión a la base de datos!
+    @Autowired
+    private StockConcesionarioRepository stockRepo;
+
     @Override
     public ConsultarStockConcesionarioResponse consultarStockConcesionario(ConsultarStockConcesionarioRequest parameters) {
         ConsultarStockConcesionarioResponse response = new ConsultarStockConcesionarioResponse();
         
-        System.out.println("Consultando stock en concesionario " + parameters.getIdConcesionario() + " para modelo " + parameters.getIdModelo());
-        
-        // Lógica simulada: Si el ID del modelo es par, hay stock. Si es impar, no.
-        if (parameters.getIdModelo() % 2 == 0) { 
+        System.out.println("Consultando stock REAL en BD para concesionario " + parameters.getIdConcesionario() + " y modelo " + parameters.getIdModelo());
+
+        // Buscamos en la tabla stock_concesionarios
+        Optional<StockConcesionario> stockOpt = stockRepo.findByIdModeloAndIdConcesionario(parameters.getIdModelo(), parameters.getIdConcesionario());
+
+        // Si lo encuentra y hay más de 0...
+        if (stockOpt.isPresent() && stockOpt.get().getCantidadDisponible() > 0) {
             response.setExito(true);
-            response.setMensaje("Stock consultado con éxito");
+            response.setMensaje("Stock encontrado en base de datos.");
             response.setDisponible(true);
-            response.setCantidad(3);
+            response.setCantidad(stockOpt.get().getCantidadDisponible());
         } else {
             response.setExito(true);
-            response.setMensaje("Sin stock en este concesionario");
+            response.setMensaje("Sin stock en este concesionario.");
             response.setDisponible(false);
             response.setCantidad(0);
         }
-        
+
         return response;
     }
 }
