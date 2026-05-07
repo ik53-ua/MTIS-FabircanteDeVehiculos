@@ -7,12 +7,26 @@ servers:
   - url: http://localhost:8080/api/produccion/v1
     description: Servidor Local - Producción
 
+tags:
+  - name: Pedidos de Compra
+    description: Gestión de órdenes de compra automáticas
+  - name: Inventario
+    description: Consulta y actualización de niveles de inventario
+  - name: Componentes
+    description: Información de componentes y catálogo
+  - name: Proveedores
+    description: Datos y gestión de proveedores
+  - name: Planificación de Producción
+    description: Gestión de la planificación de producción
+
 paths:
   # ==========================================
   # RECURSO PRINCIPAL: PEDIDOS DE COMPRA
   # ==========================================
   /pedidosCompra:
     post:
+      tags:
+        - Pedidos de Compra
       summary: Crear orden de compra automática
       description: Genera una orden de compra automáticamente. Orquestador del proceso.
       parameters:
@@ -35,6 +49,8 @@ paths:
 
   /pedidosCompra/{id}:
     get:
+      tags:
+        - Pedidos de Compra
       summary: Consultar orden de compra
       parameters:
         - name: id
@@ -58,6 +74,8 @@ paths:
   # ==========================================
   /inventario/{componenteId}:
     get:
+      tags:
+        - Inventario
       summary: Consultar stock de un componente
       parameters:
         - name: componenteId
@@ -81,6 +99,8 @@ paths:
   # ==========================================
   /componentes/{id}:
     get:
+      tags:
+        - Componentes
       summary: Obtener información del componente
       parameters:
         - name: id
@@ -104,6 +124,8 @@ paths:
   # ==========================================
   /proveedores/{id}:
     get:
+      tags:
+        - Proveedores
       summary: Consultar datos del proveedor
       parameters:
         - name: id
@@ -127,6 +149,8 @@ paths:
   # ==========================================
   /planificacionProduccion/{id}:
     put:
+      tags:
+        - Planificación de Producción
       summary: Actualizar planificación
       parameters:
         - name: id
