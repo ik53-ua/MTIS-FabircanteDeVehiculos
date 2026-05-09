@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://mtis.org/ServicioStockRed/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://mtis.org/ServicioStockRed/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://mtis.org/ServicioStockRed/">
+            <xs:element name="ConsultarStockRedRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="WSKey" type="xs:string"/>
+                        <xs:element name="idModelo" type="xs:int"/>
+                        <xs:element name="configuracion" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ConsultarStockRedResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="exito" type="xs:boolean"/>
+                        <xs:element name="mensaje" type="xs:string"/>
+                        <xs:element minOccurs="0" name="disponible" type="xs:boolean"/>
+                        <xs:element minOccurs="0" name="cantidad" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="ConsultarStockRedRequestMessage">
+    <wsdl:part name="parameters" element="tns:ConsultarStockRedRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ConsultarStockRedResponseMessage">
+    <wsdl:part name="parameters" element="tns:ConsultarStockRedResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioStockRedPortType">
+    <wsdl:operation name="ConsultarStockRed">
+      <wsdl:input message="tns:ConsultarStockRedRequestMessage">
+    </wsdl:input>
+      <wsdl:output message="tns:ConsultarStockRedResponseMessage">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioStockRedSoapBinding" type="tns:ServicioStockRedPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="ConsultarStockRed">
+      <soap:operation soapAction="http://mtis.org/ServicioStockRed/ConsultarStockRed"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioStockRed">
+    <wsdl:port name="ServicioStockRedPort" binding="tns:ServicioStockRedSoapBinding">
+      <soap:address location="http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockRed"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

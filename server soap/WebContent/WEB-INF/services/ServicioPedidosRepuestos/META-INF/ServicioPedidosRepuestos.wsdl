@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://mtis.org/ServicioPedidosRepuestos/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://mtis.org/ServicioPedidosRepuestos/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://mtis.org/ServicioPedidosRepuestos/">
+            <xs:element name="GenerarPedidoRepuestosRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="WSKey" type="xs:string"/>
+                        <xs:element name="idConcesionario" type="xs:int"/>
+                        <xs:element name="idPieza" type="xs:int"/>
+                        <xs:element name="cantidad" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="GenerarPedidoRepuestosResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="exito" type="xs:boolean"/>
+                        <xs:element name="mensaje" type="xs:string"/>
+                        <xs:element minOccurs="0" name="idPedido" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="GenerarPedidoRepuestosResponseMessage">
+    <wsdl:part name="parameters" element="tns:GenerarPedidoRepuestosResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GenerarPedidoRepuestosRequestMessage">
+    <wsdl:part name="parameters" element="tns:GenerarPedidoRepuestosRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioPedidosRepuestosPortType">
+    <wsdl:operation name="GenerarPedidoRepuestos">
+      <wsdl:input message="tns:GenerarPedidoRepuestosRequestMessage">
+    </wsdl:input>
+      <wsdl:output message="tns:GenerarPedidoRepuestosResponseMessage">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioPedidosRepuestosSoapBinding" type="tns:ServicioPedidosRepuestosPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GenerarPedidoRepuestos">
+      <soap:operation soapAction="http://mtis.org/ServicioPedidosRepuestos/GenerarPedidoRepuestos"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioPedidosRepuestos">
+    <wsdl:port name="ServicioPedidosRepuestosPort" binding="tns:ServicioPedidosRepuestosSoapBinding">
+      <soap:address location="http://localhost:8080/FabricanteDeVehiculos/services/ServicioPedidosRepuestos"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

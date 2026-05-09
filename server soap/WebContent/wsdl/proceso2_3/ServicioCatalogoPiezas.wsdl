@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:tns="http://mtis.org/ServicioCatalogoPiezas/"
+                  targetNamespace="http://mtis.org/ServicioCatalogoPiezas/">
+
+    <wsdl:types>
+        <xs:schema targetNamespace="http://mtis.org/ServicioCatalogoPiezas/" elementFormDefault="qualified">
+            <xs:element name="ConsultarPiezaRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="WSKey" type="xs:string"/>
+                        <xs:element name="idPieza" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ConsultarPiezaResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="exito" type="xs:boolean"/>
+                        <xs:element name="mensaje" type="xs:string"/>
+                        <xs:element name="nombrePieza" type="xs:string" minOccurs="0"/>
+                        <xs:element name="precio" type="xs:double" minOccurs="0"/>
+                        <xs:element name="tiempoSuministroDias" type="xs:int" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="ConsultarPiezaRequestMessage">
+        <wsdl:part name="parameters" element="tns:ConsultarPiezaRequest"/>
+    </wsdl:message>
+    <wsdl:message name="ConsultarPiezaResponseMessage">
+        <wsdl:part name="parameters" element="tns:ConsultarPiezaResponse"/>
+    </wsdl:message>
+
+    <wsdl:portType name="ServicioCatalogoPiezasPortType">
+        <wsdl:operation name="ConsultarPieza">
+            <wsdl:input message="tns:ConsultarPiezaRequestMessage"/>
+            <wsdl:output message="tns:ConsultarPiezaResponseMessage"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="ServicioCatalogoPiezasSoapBinding" type="tns:ServicioCatalogoPiezasPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="ConsultarPieza">
+            <soap:operation soapAction="http://mtis.org/ServicioCatalogoPiezas/ConsultarPieza"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="ServicioCatalogoPiezas">
+        <wsdl:port name="ServicioCatalogoPiezasPort" binding="tns:ServicioCatalogoPiezasSoapBinding">
+            <soap:address location="http://localhost:8080/FabricanteDeVehiculos/services/ServicioCatalogoPiezas"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

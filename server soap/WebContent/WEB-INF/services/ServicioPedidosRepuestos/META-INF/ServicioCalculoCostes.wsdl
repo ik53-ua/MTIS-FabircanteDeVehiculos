@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://mtis.org/ServicioCalculoCostes/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://mtis.org/ServicioCalculoCostes/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://mtis.org/ServicioCalculoCostes/">
+            <xs:element name="CalcularCosteProduccionRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="WSKey" type="xs:string"/>
+                        <xs:element name="idModelo" type="xs:int"/>
+                        <xs:element name="configuracion" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="CalcularCosteProduccionResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="exito" type="xs:boolean"/>
+                        <xs:element name="mensaje" type="xs:string"/>
+                        <xs:element minOccurs="0" name="costeTotal" type="xs:double"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="CalcularCosteProduccionResponseMessage">
+    <wsdl:part name="parameters" element="tns:CalcularCosteProduccionResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CalcularCosteProduccionRequestMessage">
+    <wsdl:part name="parameters" element="tns:CalcularCosteProduccionRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioCalculoCostesPortType">
+    <wsdl:operation name="CalcularCosteProduccion">
+      <wsdl:input message="tns:CalcularCosteProduccionRequestMessage">
+    </wsdl:input>
+      <wsdl:output message="tns:CalcularCosteProduccionResponseMessage">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioCalculoCostesSoapBinding" type="tns:ServicioCalculoCostesPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="CalcularCosteProduccion">
+      <soap:operation soapAction="http://mtis.org/ServicioCalculoCostes/CalcularCosteProduccion"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioCalculoCostes">
+    <wsdl:port name="ServicioCalculoCostesPort" binding="tns:ServicioCalculoCostesSoapBinding">
+      <soap:address location="http://localhost:8080/FabricanteDeVehiculos/services/ServicioCalculoCostes"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://mtis.org/ServicioRegistroPedidos/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://mtis.org/ServicioRegistroPedidos/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://mtis.org/ServicioRegistroPedidos/">
+            <xs:element name="RegistrarPedidoFabricacionRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="WSKey" type="xs:string"/>
+                        <xs:element name="idConcesionario" type="xs:int"/>
+                        <xs:element name="idOrden" type="xs:int"/> 
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="RegistrarPedidoFabricacionResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="exito" type="xs:boolean"/>
+                        <xs:element name="mensaje" type="xs:string"/>
+                        <xs:element minOccurs="0" name="idPedido" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="RegistrarPedidoFabricacionRequestMessage">
+    <wsdl:part name="parameters" element="tns:RegistrarPedidoFabricacionRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RegistrarPedidoFabricacionResponseMessage">
+    <wsdl:part name="parameters" element="tns:RegistrarPedidoFabricacionResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioRegistroPedidosPortType">
+    <wsdl:operation name="RegistrarPedidoFabricacion">
+      <wsdl:input message="tns:RegistrarPedidoFabricacionRequestMessage">
+    </wsdl:input>
+      <wsdl:output message="tns:RegistrarPedidoFabricacionResponseMessage">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioRegistroPedidosSoapBinding" type="tns:ServicioRegistroPedidosPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="RegistrarPedidoFabricacion">
+      <soap:operation soapAction="http://mtis.org/ServicioRegistroPedidos/RegistrarPedidoFabricacion"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioRegistroPedidos">
+    <wsdl:port name="ServicioRegistroPedidosPort" binding="tns:ServicioRegistroPedidosSoapBinding">
+      <soap:address location="http://localhost:8080/FabricanteDeVehiculos/services/ServicioRegistroPedidos"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

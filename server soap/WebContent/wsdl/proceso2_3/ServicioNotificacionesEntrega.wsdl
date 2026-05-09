@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:tns="http://mtis.org/ServicioNotificacionesEntrega/"
+                  targetNamespace="http://mtis.org/ServicioNotificacionesEntrega/">
+
+    <wsdl:types>
+        <xs:schema targetNamespace="http://mtis.org/ServicioNotificacionesEntrega/" elementFormDefault="qualified">
+            <xs:element name="EnviarNotificacionEntregaRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="WSKey" type="xs:string"/>
+                        <xs:element name="idConcesionario" type="xs:int"/>
+                        <xs:element name="idEnvio" type="xs:int" minOccurs="0"/>
+                        <xs:element name="fechaRecepcionEstimada" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="EnviarNotificacionEntregaResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="exito" type="xs:boolean"/>
+                        <xs:element name="mensaje" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="EnviarNotificacionEntregaRequestMessage">
+        <wsdl:part name="parameters" element="tns:EnviarNotificacionEntregaRequest"/>
+    </wsdl:message>
+    <wsdl:message name="EnviarNotificacionEntregaResponseMessage">
+        <wsdl:part name="parameters" element="tns:EnviarNotificacionEntregaResponse"/>
+    </wsdl:message>
+
+    <wsdl:portType name="ServicioNotificacionesEntregaPortType">
+        <wsdl:operation name="EnviarNotificacionEntrega">
+            <wsdl:input message="tns:EnviarNotificacionEntregaRequestMessage"/>
+            <wsdl:output message="tns:EnviarNotificacionEntregaResponseMessage"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="ServicioNotificacionesEntregaSoapBinding" type="tns:ServicioNotificacionesEntregaPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="EnviarNotificacionEntrega">
+            <soap:operation soapAction="http://mtis.org/ServicioNotificacionesEntrega/EnviarNotificacionEntrega"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="ServicioNotificacionesEntrega">
+        <wsdl:port name="ServicioNotificacionesEntregaPort" binding="tns:ServicioNotificacionesEntregaSoapBinding">
+            <soap:address location="http://localhost:8080/FabricanteDeVehiculos/services/ServicioNotificacionesEntrega"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

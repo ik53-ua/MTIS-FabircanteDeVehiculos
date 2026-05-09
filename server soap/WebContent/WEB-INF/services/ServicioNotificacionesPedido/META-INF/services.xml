@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- This file was auto-generated from WSDL --><!-- by the Apache Axis2 version: 1.6.3  Built on : Jun 27, 2015 (11:17:49 BST) --><serviceGroup>
+    <service name="ServicioNotificacionesPedido">
+        <messageReceivers>
+            <messageReceiver mep="http://www.w3.org/ns/wsdl/in-out" class="org.mtis.servicionotificacionespedido.ServicioNotificacionesPedidoMessageReceiverInOut"/>
+        </messageReceivers>
+        <parameter name="ServiceClass">org.mtis.servicionotificacionespedido.ServicioNotificacionesPedidoSkeleton</parameter>
+        <parameter name="useOriginalwsdl">true</parameter>
+        <parameter name="modifyUserWSDLPortAddress">true</parameter>
+        <operation name="EnviarNotificacionPedido" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://mtis.org/ServicioNotificacionesPedido/">
+            <actionMapping>http://mtis.org/ServicioNotificacionesPedido/EnviarNotificacionPedido</actionMapping>
+            <outputActionMapping>http://mtis.org/ServicioNotificacionesPedido/ServicioNotificacionesPedidoPortType/EnviarNotificacionPedidoResponse</outputActionMapping>
+        </operation>
+    </service>
+</serviceGroup>

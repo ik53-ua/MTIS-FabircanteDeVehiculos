@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- This file was auto-generated from WSDL --><!-- by the Apache Axis2 version: 1.6.3  Built on : Jun 27, 2015 (11:17:49 BST) --><serviceGroup>
+    <service name="ServicioStockRed">
+        <messageReceivers>
+            <messageReceiver mep="http://www.w3.org/ns/wsdl/in-out" class="org.mtis.serviciostockred.ServicioStockRedMessageReceiverInOut"/>
+        </messageReceivers>
+        <parameter name="ServiceClass">org.mtis.serviciostockred.ServicioStockRedSkeleton</parameter>
+        <parameter name="useOriginalwsdl">true</parameter>
+        <parameter name="modifyUserWSDLPortAddress">true</parameter>
+        <operation name="ConsultarStockRed" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://mtis.org/ServicioStockRed/">
+            <actionMapping>http://mtis.org/ServicioStockRed/ConsultarStockRed</actionMapping>
+            <outputActionMapping>http://mtis.org/ServicioStockRed/ServicioStockRedPortType/ConsultarStockRedResponse</outputActionMapping>
+        </operation>
+    </service>
+</serviceGroup>

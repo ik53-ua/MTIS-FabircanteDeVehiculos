@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- This file was auto-generated from WSDL --><!-- by the Apache Axis2 version: 1.6.3  Built on : Jun 27, 2015 (11:17:49 BST) --><serviceGroup>
+    <service name="ServicioRegistroReservas">
+        <messageReceivers>
+            <messageReceiver mep="http://www.w3.org/ns/wsdl/in-out" class="org.mtis.servicioregistroreservas.ServicioRegistroReservasMessageReceiverInOut"/>
+        </messageReceivers>
+        <parameter name="ServiceClass">org.mtis.servicioregistroreservas.ServicioRegistroReservasSkeleton</parameter>
+        <parameter name="useOriginalwsdl">true</parameter>
+        <parameter name="modifyUserWSDLPortAddress">true</parameter>
+        <operation name="RegistrarReserva" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://mtis.org/ServicioRegistroReservas/">
+            <actionMapping>http://mtis.org/ServicioRegistroReservas/RegistrarReserva</actionMapping>
+            <outputActionMapping>http://mtis.org/ServicioRegistroReservas/ServicioRegistroReservasPortType/RegistrarReservaResponse</outputActionMapping>
+        </operation>
+    </service>
+</serviceGroup>
