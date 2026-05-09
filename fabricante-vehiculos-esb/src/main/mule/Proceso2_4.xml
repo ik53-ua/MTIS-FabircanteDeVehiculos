@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xmlns:db="http://www.mulesoft.org/schema/mule/db"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+
+    <!-- ============================================ -->
+    <!-- CONFIGURACIÓN APIKIT                          -->
+    <!-- ============================================ -->
+    <apikit:config name="Proceso2_4-config" api="Proceso2_4.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+
+    <!-- ============================================ -->
+    <!-- FLUJO PRINCIPAL - APIKit Router                -->
+    <!-- ============================================ -->
+    <flow name="Proceso2_4-main">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/produccion/v1/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="Proceso2_4-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- CONSOLA APIKIT                                -->
+    <!-- ============================================ -->
+    <flow name="Proceso2_4-console">
+        <http:listener config-ref="HTTP_Listener_config" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="Proceso2_4-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /inventario/{componenteId}                -->
+    <!-- Consultar stock de un componente en fábrica   -->
+    <!-- ============================================ -->
+    <flow name="get:\inventario\(componenteId):Proceso2_4-config">
+        <!-- 1. Extraer parámetros -->
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="componenteId">attributes.uriParams.'componenteId'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <!-- 2. Validar WSKey -->
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <!-- 3. Consultar inventario del componente -->
+                <db:select doc:name="Consultar inventario" config-ref="Database_Config">
+                    <db:sql>SELECT id_componente, cantidad_actual, umbral_minimo FROM InventarioComponente WHERE id_componente = :componenteId</db:sql>
+                    <db:input-parameters><![CDATA[#[{'componenteId': vars.componenteId}]]]></db:input-parameters>
+                </db:select>
+                <!-- 4. Transformar respuesta -->
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  {
+    componenteId: payload[0].id_componente as String,
+    cantidadActual: payload[0].cantidad_actual
+  }
+else
+  {
+    mensaje: "Componente no encontrado"
+  }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /componentes/{id}                         -->
+    <!-- Obtener información de un componente          -->
+    <!-- ============================================ -->
+    <flow name="get:\componentes\(id):Proceso2_4-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:select doc:name="Consultar componente" config-ref="Database_Config">
+                    <db:sql>SELECT c.id_componente, c.nombre, c.id_proveedor FROM ComponenteFabrica c WHERE c.id_componente = :id</db:sql>
+                    <db:input-parameters><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  {
+    componenteId: payload[0].id_componente as String,
+    nombre: payload[0].nombre,
+    proveedorId: payload[0].id_proveedor as String
+  }
+else
+  {
+    mensaje: "Componente no encontrado"
+  }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /proveedores/{id}                         -->
+    <!-- Consultar datos de un proveedor               -->
+    <!-- ============================================ -->
+    <flow name="get:\proveedores\(id):Proceso2_4-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:select doc:name="Consultar proveedor" config-ref="Database_Config">
+                    <db:sql>SELECT id_proveedor, nombre FROM Proveedor WHERE id_proveedor = :id</db:sql>
+                    <db:input-parameters><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  {
+    proveedorId: payload[0].id_proveedor as String,
+    nombreEmpresa: payload[0].nombre
+  }
+else
+  {
+    mensaje: "Proveedor no encontrado"
+  }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /pedidosCompra/{id}                       -->
+    <!-- Consultar una orden de compra existente       -->
+    <!-- ============================================ -->
+    <flow name="get:\pedidosCompra\(id):Proceso2_4-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:select doc:name="Consultar pedido" config-ref="Database_Config">
+                    <db:sql>SELECT id_pedido_compra, id_componente, id_proveedor, cantidad_solicitada, coste_total_estimado, estado, fecha_pedido FROM PedidoCompra WHERE id_pedido_compra = :id</db:sql>
+                    <db:input-parameters><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  {
+    pedidoId: payload[0].id_pedido_compra as String,
+    estado: payload[0].estado
+  }
+else
+  {
+    mensaje: "Pedido de compra no encontrado"
+  }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- PUT /planificacionProduccion/{id}              -->
+    <!-- Actualizar planificación de producción         -->
+    <!-- ============================================ -->
+    <flow name="put:\planificacionProduccion\(id):application\json:Proceso2_4-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="requestBody">payload</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:update doc:name="Actualizar planificacion" config-ref="Database_Config">
+                    <db:sql>UPDATE PlanificacionProduccion SET estado = :estado, observaciones = :observaciones WHERE id_planificacion = :id</db:sql>
+                    <db:input-parameters><![CDATA[#[{
+  'id': vars.id,
+  'estado': vars.requestBody.estadoProduccion default 'PLANIFICADO',
+  'observaciones': 'Actualizado por reabastecimiento. Nueva fecha: ' ++ (vars.requestBody.nuevaFechaReanudacion default '')
+}]]]></db:input-parameters>
+                </db:update>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Planificacion actualizada correctamente"}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- POST /pedidosCompra                           -->
+    <!-- ORQUESTADOR: Crear orden de compra automática -->
+    <!-- Este es el flujo principal del Proceso 2.4    -->
+    <!-- Orquesta: inventario → componente → proveedor -->
+    <!--           → crear pedido → actualizar planif. -->
+    <!-- ============================================ -->
+    <flow name="post:\pedidosCompra:application\json:Proceso2_4-config">
+        <!-- 1. Extraer parámetros de entrada -->
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="componenteId">payload.componenteId</ee:set-variable>
+                <ee:set-variable variableName="cantidadRequerida">payload.cantidadRequerida</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <!-- 2. Validar WSKey -->
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <!-- 3. ORQUESTACIÓN: Consultar inventario del componente -->
+                <db:select doc:name="PASO 1 - Consultar inventario" config-ref="Database_Config">
+                    <db:sql>SELECT id_componente, cantidad_actual, umbral_minimo FROM InventarioComponente WHERE id_componente = :componenteId</db:sql>
+                    <db:input-parameters><![CDATA[#[{'componenteId': vars.componenteId}]]]></db:input-parameters>
+                </db:select>
+                <choice doc:name="Componente existe?">
+                    <when expression="#[sizeOf(payload) == 0]">
+                        <ee:transform doc:name="Error componente no encontrado">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: Componente no encontrado en inventario"}]]></ee:set-payload>
+                            </ee:message>
+                            <ee:variables>
+                                <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+                    </when>
+                    <otherwise>
+                        <!-- Guardar datos del inventario -->
+                        <ee:transform doc:name="Guardar datos inventario">
+                            <ee:variables>
+                                <ee:set-variable variableName="cantidadActual">payload[0].cantidad_actual</ee:set-variable>
+                                <ee:set-variable variableName="umbralMinimo">payload[0].umbral_minimo</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <!-- 4. ORQUESTACIÓN: Consultar datos del componente y su proveedor -->
+                        <db:select doc:name="PASO 2 - Consultar componente" config-ref="Database_Config">
+                            <db:sql>SELECT c.id_componente, c.nombre, c.id_proveedor, c.precio_unitario FROM ComponenteFabrica c WHERE c.id_componente = :componenteId</db:sql>
+                            <db:input-parameters><![CDATA[#[{'componenteId': vars.componenteId}]]]></db:input-parameters>
+                        </db:select>
+                        <ee:transform doc:name="Guardar datos componente">
+                            <ee:variables>
+                                <ee:set-variable variableName="proveedorId">payload[0].id_proveedor</ee:set-variable>
+                                <ee:set-variable variableName="precioUnitario">payload[0].precio_unitario</ee:set-variable>
+                                <ee:set-variable variableName="nombreComponente">payload[0].nombre</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <!-- 5. ORQUESTACIÓN: Consultar proveedor -->
+                        <db:select doc:name="PASO 3 - Consultar proveedor" config-ref="Database_Config">
+                            <db:sql>SELECT id_proveedor, nombre FROM Proveedor WHERE id_proveedor = :proveedorId</db:sql>
+                            <db:input-parameters><![CDATA[#[{'proveedorId': vars.proveedorId}]]]></db:input-parameters>
+                        </db:select>
+                        <ee:transform doc:name="Guardar datos proveedor">
+                            <ee:variables>
+                                <ee:set-variable variableName="nombreProveedor">payload[0].nombre</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <!-- 6. ORQUESTACIÓN: Crear la orden de compra en BD -->
+                        <db:insert doc:name="PASO 4 - Crear pedido de compra" config-ref="Database_Config">
+                            <db:sql>INSERT INTO PedidoCompra (id_componente, id_proveedor, cantidad_solicitada, coste_total_estimado, estado, fecha_entrega_estimada) VALUES (:componenteId, :proveedorId, :cantidad, :coste, 'PENDIENTE', DATE_ADD(NOW(), INTERVAL 7 DAY))</db:sql>
+                            <db:input-parameters><![CDATA[#[{
+  'componenteId': vars.componenteId,
+  'proveedorId': vars.proveedorId,
+  'cantidad': vars.cantidadRequerida,
+  'coste': vars.precioUnitario * vars.cantidadRequerida
+}]]]></db:input-parameters>
+                        </db:insert>
+
+                        <!-- 7. Obtener el ID del pedido recién creado -->
+                        <db:select doc:name="Obtener ID pedido creado" config-ref="Database_Config">
+                            <db:sql>SELECT LAST_INSERT_ID() AS pedidoId</db:sql>
+                        </db:select>
+                        <ee:transform doc:name="Guardar pedidoId">
+                            <ee:variables>
+                                <ee:set-variable variableName="pedidoId">payload[0].pedidoId</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <!-- 8. ORQUESTACIÓN: Actualizar planificación de producción -->
+                        <db:update doc:name="PASO 5 - Actualizar planificacion" config-ref="Database_Config">
+                            <db:sql>UPDATE PlanificacionProduccion pp JOIN ComponenteModelo cm ON pp.id_modelo = cm.id_modelo SET pp.observaciones = CONCAT(IFNULL(pp.observaciones,''), ' | Reabastecimiento pedido #', :pedidoId, ' para componente ', :nombreComponente) WHERE cm.id_componente = :componenteId AND pp.estado IN ('PLANIFICADO','EN_PRODUCCION')</db:sql>
+                            <db:input-parameters><![CDATA[#[{
+  'pedidoId': vars.pedidoId,
+  'nombreComponente': vars.nombreComponente,
+  'componenteId': vars.componenteId
+}]]]></db:input-parameters>
+                        </db:update>
+
+                        <!-- 9. Respuesta final -->
+                        <ee:transform doc:name="Respuesta exitosa">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  pedidoId: vars.pedidoId as String,
+  estado: "PENDIENTE"
+}]]></ee:set-payload>
+                            </ee:message>
+                            <ee:variables>
+                                <ee:set-variable variableName="httpStatus">201</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+                    </otherwise>
+                </choice>
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xmlns:db="http://www.mulesoft.org/schema/mule/db"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+
+    <!-- ============================================ -->
+    <!-- CONFIGURACION APIKIT PROCESO 2.5              -->
+    <!-- ============================================ -->
+    <apikit:config name="Proceso2_5-config" api="Proceso2_5.raml" outboundHeadersMapName="outboundHeaders2_5" httpStatusVarName="httpStatus2_5" />
+
+    <!-- ============================================ -->
+    <!-- FLUJO PRINCIPAL - APIKit Router                -->
+    <!-- ============================================ -->
+    <flow name="Proceso2_5-main">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/ventas/v1/*">
+            <http:response statusCode="#[vars.httpStatus2_5 default 200]">
+                <http:headers>#[vars.outboundHeaders2_5 default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus2_5 default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders2_5 default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="Proceso2_5-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- CONSOLA APIKIT PROCESO 2.5                    -->
+    <!-- ============================================ -->
+    <flow name="Proceso2_5-console">
+        <http:listener config-ref="HTTP_Listener_config" path="/console-ventas/*">
+            <http:response statusCode="#[vars.httpStatus2_5 default 200]">
+                <http:headers>#[vars.outboundHeaders2_5 default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus2_5 default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders2_5 default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="Proceso2_5-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /ventas/{id}                              -->
+    <!-- ============================================ -->
+    <flow name="get:\ventas\(id):Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:select doc:name="Consultar venta" config-ref="Database_Config">
+                    <db:sql>SELECT id_venta, estado_venta FROM Venta WHERE id_venta = :id</db:sql>
+                    <db:input-parameters><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  { ventaId: payload[0].id_venta as String, estado: payload[0].estado_venta }
+else
+  { mensaje: "Venta no encontrada" }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /facturas/{id}                            -->
+    <!-- ============================================ -->
+    <flow name="get:\facturas\(id):Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:select doc:name="Consultar factura" config-ref="Database_Config">
+                    <db:sql>SELECT id_factura, estado FROM Factura WHERE id_factura = :id</db:sql>
+                    <db:input-parameters><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  { facturaId: payload[0].id_factura as String, estado: payload[0].estado }
+else
+  { mensaje: "Factura no encontrada" }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /pagos/{id}                               -->
+    <!-- ============================================ -->
+    <flow name="get:\pagos\(id):Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:select doc:name="Consultar pago" config-ref="Database_Config">
+                    <db:sql>SELECT id_pago, monto, metodo_pago FROM Pago WHERE id_pago = :id</db:sql>
+                    <db:input-parameters><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  { pagoId: payload[0].id_pago as String, estado: "COMPLETADO" }
+else
+  { mensaje: "Pago no encontrado" }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /inventario/{vehiculoId}                  -->
+    <!-- ============================================ -->
+    <flow name="get:\inventario\(vehiculoId):Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="vehiculoId">attributes.uriParams.'vehiculoId'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:select doc:name="Consultar inventario vehiculo" config-ref="Database_Config">
+                    <db:sql>SELECT vin, id_modelo, id_concesionario, estado, color, motor FROM InventarioVehiculo WHERE vin = :vehiculoId</db:sql>
+                    <db:input-parameters><![CDATA[#[{'vehiculoId': vars.vehiculoId}]]]></db:input-parameters>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  { mensaje: "Vehiculo " ++ payload[0].vin ++ " - Estado: " ++ payload[0].estado }
+else
+  { mensaje: "Vehiculo no encontrado" }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- GET /garantias/{vehiculoId}                   -->
+    <!-- ============================================ -->
+    <flow name="get:\garantias\(vehiculoId):Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="vehiculoId">attributes.uriParams.'vehiculoId'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:select doc:name="Consultar garantia" config-ref="Database_Config">
+                    <db:sql>SELECT id_garantia, vin, estado, fecha_inicio, fecha_fin FROM Garantia WHERE vin = :vehiculoId</db:sql>
+                    <db:input-parameters><![CDATA[#[{'vehiculoId': vars.vehiculoId}]]]></db:input-parameters>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload) > 0)
+  { garantiaId: payload[0].id_garantia as String, estado: payload[0].estado }
+else
+  { mensaje: "Garantia no encontrada" }]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- PUT /inventario/{vehiculoId}                  -->
+    <!-- ============================================ -->
+    <flow name="put:\inventario\(vehiculoId):application\json:Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="vehiculoId">attributes.uriParams.'vehiculoId'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="requestBody">payload</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:update doc:name="Actualizar estado vehiculo" config-ref="Database_Config">
+                    <db:sql>UPDATE InventarioVehiculo SET estado = :estado WHERE vin = :vehiculoId</db:sql>
+                    <db:input-parameters><![CDATA[#[{
+  'vehiculoId': vars.vehiculoId,
+  'estado': vars.requestBody.estadoVehiculo
+}]]]></db:input-parameters>
+                </db:update>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Inventario actualizado correctamente"}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- POST /facturas                                -->
+    <!-- ============================================ -->
+    <flow name="post:\facturas:application\json:Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="ventaId">payload.ventaId</ee:set-variable>
+                <ee:set-variable variableName="importe">payload.importe</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:insert doc:name="Crear factura" config-ref="Database_Config">
+                    <db:sql>INSERT INTO Factura (id_venta, total, estado) VALUES (:ventaId, :importe, 'PENDIENTE')</db:sql>
+                    <db:input-parameters><![CDATA[#[{ 'ventaId': vars.ventaId, 'importe': vars.importe }]]]></db:input-parameters>
+                </db:insert>
+                <db:select doc:name="Obtener ID factura" config-ref="Database_Config">
+                    <db:sql>SELECT LAST_INSERT_ID() AS facturaId</db:sql>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ facturaId: payload[0].facturaId as String, estado: "PENDIENTE" }]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">201</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- POST /pagos                                   -->
+    <!-- ============================================ -->
+    <flow name="post:\pagos:application\json:Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="facturaId">payload.facturaId</ee:set-variable>
+                <ee:set-variable variableName="cantidad">payload.cantidad</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:insert doc:name="Registrar pago" config-ref="Database_Config">
+                    <db:sql>INSERT INTO Pago (id_factura, monto, metodo_pago) VALUES (:facturaId, :cantidad, 'TRANSFERENCIA')</db:sql>
+                    <db:input-parameters><![CDATA[#[{ 'facturaId': vars.facturaId, 'cantidad': vars.cantidad }]]]></db:input-parameters>
+                </db:insert>
+                <db:update doc:name="Actualizar factura a PAGADA" config-ref="Database_Config">
+                    <db:sql>UPDATE Factura SET estado = 'PAGADA' WHERE id_factura = :facturaId</db:sql>
+                    <db:input-parameters><![CDATA[#[{'facturaId': vars.facturaId}]]]></db:input-parameters>
+                </db:update>
+                <db:select doc:name="Obtener ID pago" config-ref="Database_Config">
+                    <db:sql>SELECT LAST_INSERT_ID() AS pagoId</db:sql>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ pagoId: payload[0].pagoId as String, estado: "COMPLETADO" }]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">201</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- POST /garantias                               -->
+    <!-- ============================================ -->
+    <flow name="post:\garantias:application\json:Proceso2_5-config">
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="vehiculoId">payload.vehiculoId</ee:set-variable>
+                <ee:set-variable variableName="duracionMeses">payload.duracionMeses</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <db:insert doc:name="Activar garantia" config-ref="Database_Config">
+                    <db:sql>INSERT INTO Garantia (vin, fecha_inicio, fecha_fin, duracion_meses, tipo_cobertura, estado) VALUES (:vehiculoId, CURDATE(), DATE_ADD(CURDATE(), INTERVAL :duracionMeses MONTH), :duracionMeses, 'COMPLETA', 'ACTIVA')</db:sql>
+                    <db:input-parameters><![CDATA[#[{ 'vehiculoId': vars.vehiculoId, 'duracionMeses': vars.duracionMeses }]]]></db:input-parameters>
+                </db:insert>
+                <db:select doc:name="Obtener ID garantia" config-ref="Database_Config">
+                    <db:sql>SELECT LAST_INSERT_ID() AS garantiaId</db:sql>
+                </db:select>
+                <ee:transform doc:name="Respuesta JSON">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ garantiaId: payload[0].garantiaId as String, estado: "ACTIVA" }]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">201</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- POST /ventas - ORQUESTADOR                    -->
+    <!-- Registro y Cierre de Venta Final              -->
+    <!-- Orquesta: verificar vehiculo -> registrar     -->
+    <!--   venta -> factura -> pago -> inventario      -->
+    <!--   -> garantia                                 -->
+    <!-- ============================================ -->
+    <flow name="post:\ventas:application\json:Proceso2_5-config">
+        <!-- 1. Extraer parametros de entrada -->
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="vehiculoId">payload.vehiculoId</ee:set-variable>
+                <ee:set-variable variableName="clienteId">payload.clienteId</ee:set-variable>
+                <ee:set-variable variableName="precioTotal">payload.precioTotal</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <!-- 2. Validar WSKey -->
+        <db:select doc:name="Validar WSKey" config-ref="Database_Config">
+            <db:sql>SELECT COUNT(*) AS total FROM RestKey WHERE rest_key = :wsKey</db:sql>
+            <db:input-parameters><![CDATA[#[{'wsKey': vars.wsKey}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="WSKey valida?">
+            <when expression="#[payload[0].total == 0]">
+                <ee:transform doc:name="Error WSKey">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: WSKey invalida"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <!-- PASO 1: Verificar vehiculo -->
+                <db:select doc:name="PASO 1 - Verificar vehiculo" config-ref="Database_Config">
+                    <db:sql>SELECT vin, id_modelo, id_concesionario, estado FROM InventarioVehiculo WHERE vin = :vehiculoId</db:sql>
+                    <db:input-parameters><![CDATA[#[{'vehiculoId': vars.vehiculoId}]]]></db:input-parameters>
+                </db:select>
+                <choice doc:name="Vehiculo disponible?">
+                    <when expression="#[sizeOf(payload) == 0]">
+                        <ee:transform doc:name="Error vehiculo no encontrado">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{mensaje: "Error: Vehiculo no encontrado"}]]></ee:set-payload>
+                            </ee:message>
+                            <ee:variables>
+                                <ee:set-variable variableName="httpStatus2_5">400</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+                    </when>
+                    <otherwise>
+                        <ee:transform doc:name="Guardar datos vehiculo">
+                            <ee:variables>
+                                <ee:set-variable variableName="concesionarioId">payload[0].id_concesionario</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <!-- PASO 2: Registrar venta -->
+                        <db:insert doc:name="PASO 2 - Registrar venta" config-ref="Database_Config">
+                            <db:sql>INSERT INTO Venta (id_cliente, id_concesionario, vin, precio_final, estado_venta) VALUES (:clienteId, :concesionarioId, :vehiculoId, :precioTotal, 'PENDIENTE_PAGO')</db:sql>
+                            <db:input-parameters><![CDATA[#[{ 'clienteId': vars.clienteId, 'concesionarioId': vars.concesionarioId, 'vehiculoId': vars.vehiculoId, 'precioTotal': vars.precioTotal }]]]></db:input-parameters>
+                        </db:insert>
+                        <db:select doc:name="Obtener ID venta" config-ref="Database_Config">
+                            <db:sql>SELECT MAX(id_venta) AS ventaId FROM Venta WHERE vin = :vehiculoId</db:sql>
+                            <db:input-parameters><![CDATA[#[{'vehiculoId': vars.vehiculoId}]]]></db:input-parameters>
+                        </db:select>
+                        <ee:transform doc:name="Guardar ventaId">
+                            <ee:variables>
+                                <ee:set-variable variableName="ventaId">payload[0].ventaId as Number</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+                        <logger level="INFO" doc:name="Log ventaId" message="VentaId creada: #[vars.ventaId]" />
+
+                        <!-- PASO 3: Generar factura -->
+                        <db:insert doc:name="PASO 3 - Generar factura" config-ref="Database_Config">
+                            <db:sql>INSERT INTO Factura (id_venta, total, estado) VALUES (:ventaId, :precioTotal, 'PENDIENTE')</db:sql>
+                            <db:input-parameters><![CDATA[#[{ 'ventaId': vars.ventaId, 'precioTotal': vars.precioTotal }]]]></db:input-parameters>
+                        </db:insert>
+                        <db:select doc:name="Obtener ID factura" config-ref="Database_Config">
+                            <db:sql>SELECT MAX(id_factura) AS facturaId FROM Factura WHERE id_venta = :ventaId</db:sql>
+                            <db:input-parameters><![CDATA[#[{'ventaId': vars.ventaId}]]]></db:input-parameters>
+                        </db:select>
+                        <ee:transform doc:name="Guardar facturaId">
+                            <ee:variables>
+                                <ee:set-variable variableName="facturaId">payload[0].facturaId as Number</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <!-- PASO 4: Registrar pago -->
+                        <db:insert doc:name="PASO 4 - Registrar pago" config-ref="Database_Config">
+                            <db:sql>INSERT INTO Pago (id_factura, monto, metodo_pago) VALUES (:facturaId, :precioTotal, 'TRANSFERENCIA')</db:sql>
+                            <db:input-parameters><![CDATA[#[{ 'facturaId': vars.facturaId, 'precioTotal': vars.precioTotal }]]]></db:input-parameters>
+                        </db:insert>
+                        <db:update doc:name="Marcar factura PAGADA" config-ref="Database_Config">
+                            <db:sql>UPDATE Factura SET estado = 'PAGADA' WHERE id_factura = :facturaId</db:sql>
+                            <db:input-parameters><![CDATA[#[{'facturaId': vars.facturaId}]]]></db:input-parameters>
+                        </db:update>
+                        <db:update doc:name="Marcar venta COMPLETADA" config-ref="Database_Config">
+                            <db:sql>UPDATE Venta SET estado_venta = 'COMPLETADA' WHERE id_venta = :ventaId</db:sql>
+                            <db:input-parameters><![CDATA[#[{'ventaId': vars.ventaId}]]]></db:input-parameters>
+                        </db:update>
+
+                        <!-- PASO 5: Dar de baja vehiculo -->
+                        <db:update doc:name="PASO 5 - Dar de baja vehiculo" config-ref="Database_Config">
+                            <db:sql>UPDATE InventarioVehiculo SET estado = 'VENDIDO' WHERE vin = :vehiculoId</db:sql>
+                            <db:input-parameters><![CDATA[#[{'vehiculoId': vars.vehiculoId}]]]></db:input-parameters>
+                        </db:update>
+
+                        <!-- PASO 6: Activar garantia -->
+                        <db:insert doc:name="PASO 6 - Activar garantia" config-ref="Database_Config">
+                            <db:sql>INSERT INTO Garantia (vin, id_venta, fecha_inicio, fecha_fin, duracion_meses, tipo_cobertura, estado) VALUES (:vehiculoId, :ventaId, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 24 MONTH), 24, 'COMPLETA', 'ACTIVA')</db:sql>
+                            <db:input-parameters><![CDATA[#[{ 'vehiculoId': vars.vehiculoId, 'ventaId': vars.ventaId }]]]></db:input-parameters>
+                        </db:insert>
+
+                        <!-- Respuesta final -->
+                        <ee:transform doc:name="Respuesta exitosa">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ ventaId: vars.ventaId as String, estado: "COMPLETADA" }]]></ee:set-payload>
+                            </ee:message>
+                            <ee:variables>
+                                <ee:set-variable variableName="httpStatus2_5">201</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+                    </otherwise>
+                </choice>
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

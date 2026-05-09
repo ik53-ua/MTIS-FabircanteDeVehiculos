@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+
+    <!-- ============================================ -->
+    <!-- CONFIGURACIONES WEB SERVICE CONSUMER 2.2      -->
+    <!-- ============================================ -->
+    <wsc:config name="WSC_ConfiguracionesVehiculo">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_2/ServicioConfiguracionesVehiculo.wsdl"
+            service="ServicioConfiguracionesVehiculo"
+            port="ServicioConfiguracionesVehiculoPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioConfiguracionesVehiculo" />
+    </wsc:config>
+
+    <wsc:config name="WSC_PlanificacionProduccion">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_2/ServicioPlanificacionProduccion.wsdl"
+            service="ServicioPlanificacionProduccion"
+            port="ServicioPlanificacionProduccionPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioPlanificacionProduccion" />
+    </wsc:config>
+
+    <wsc:config name="WSC_CalculoCostes">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_2/ServicioCalculoCostes.wsdl"
+            service="ServicioCalculoCostes"
+            port="ServicioCalculoCostesPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioCalculoCostes" />
+    </wsc:config>
+
+    <wsc:config name="WSC_GeneracionOrdenProduccion">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_2/ServicioGeneracionOrdenProduccion.wsdl"
+            service="ServicioGeneracionOrdenProduccion"
+            port="ServicioGeneracionOrdenProduccionPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioGeneracionOrdenProduccion" />
+    </wsc:config>
+
+    <wsc:config name="WSC_RegistroPedidos">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_2/ServicioRegistroPedidos.wsdl"
+            service="ServicioRegistroPedidos"
+            port="ServicioRegistroPedidosPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioRegistroPedidos" />
+    </wsc:config>
+
+    <wsc:config name="WSC_NotificacionesPedido">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_2/ServicioNotificacionesPedido.wsdl"
+            service="ServicioNotificacionesPedido"
+            port="ServicioNotificacionesPedidoPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioNotificacionesPedido" />
+    </wsc:config>
+
+    <!-- ============================================ -->
+    <!-- FLUJO ORQUESTADOR: Proceso 2.2                -->
+    <!-- Pedido de Fabricacion a Medida                -->
+    <!-- Orquesta: validar config -> calcular tiempo   -->
+    <!--   -> calcular coste -> generar orden ->       -->
+    <!--   registrar pedido -> notificar               -->
+    <!-- ============================================ -->
+    <flow name="Proceso2_2-PedidoFabricacion">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/soap/pedidoFabricacion" allowedMethods="POST">
+            <http:response statusCode="#[vars.httpStatusSoap2 default 200]" />
+            <http:error-response statusCode="500">
+                <http:body>#[payload]</http:body>
+            </http:error-response>
+        </http:listener>
+
+        <!-- 1. Extraer parametros del JSON de entrada -->
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="wsKey"><![CDATA[payload.WSKey]]></ee:set-variable>
+                <ee:set-variable variableName="idConcesionario"><![CDATA[payload.idConcesionario]]></ee:set-variable>
+                <ee:set-variable variableName="idModelo"><![CDATA[payload.idModelo]]></ee:set-variable>
+                <ee:set-variable variableName="configuracion"><![CDATA[payload.configuracion]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger level="INFO" doc:name="Inicio Proceso 2.2" message="Proceso 2.2 - Pedido Fabricacion: Concesionario=#[vars.idConcesionario], Modelo=#[vars.idModelo], Config=#[vars.configuracion]" />
+
+        <!-- ======================================== -->
+        <!-- PASO 1: Validar configuracion del vehiculo -->
+        <!-- ======================================== -->
+        <ee:transform doc:name="Preparar request ValidarConfiguracion">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioConfiguracionesVehiculo/
+---
+{
+  ns0#ValidarConfiguracionRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idModelo: vars.idModelo,
+    ns0#configuracion: vars.configuracion
+  }
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <wsc:consume doc:name="Llamar ValidarConfiguracion" config-ref="WSC_ConfiguracionesVehiculo" operation="ValidarConfiguracion" />
+
+        <ee:transform doc:name="Evaluar viabilidad">
+            <ee:variables>
+                <ee:set-variable variableName="esViable"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioConfiguracionesVehiculo/
+---
+payload.body.ns0#ValidarConfiguracionResponse.ns0#esViable as Boolean default false]]></ee:set-variable>
+                <ee:set-variable variableName="mensajeValidacion"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioConfiguracionesVehiculo/
+---
+payload.body.ns0#ValidarConfiguracionResponse.ns0#mensaje as String default ""]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger level="INFO" doc:name="Log validacion" message="Validacion configuracion: viable=#[vars.esViable]" />
+
+        <!-- ======================================== -->
+        <!-- DECISIÓN: ¿Es viable la configuracion?    -->
+        <!-- ======================================== -->
+        <choice doc:name="Configuracion viable?">
+            <when expression="#[vars.esViable == true]">
+
+                <!-- ======================================== -->
+                <!-- PASO 2: Calcular tiempo de fabricacion    -->
+                <!-- ======================================== -->
+                <ee:transform doc:name="Preparar request CapacidadProduccion">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioPlanificacionProduccion/
+---
+{
+  ns0#ConsultarCapacidadProduccionRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idModelo: vars.idModelo,
+    ns0#configuracion: vars.configuracion
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Llamar ConsultarCapacidadProduccion" config-ref="WSC_PlanificacionProduccion" operation="ConsultarCapacidadProduccion" />
+
+                <ee:transform doc:name="Guardar datos produccion">
+                    <ee:variables>
+                        <ee:set-variable variableName="diasEstimados"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioPlanificacionProduccion/
+---
+payload.body.ns0#ConsultarCapacidadProduccionResponse.ns0#diasEstimados as Number default 0]]></ee:set-variable>
+                        <ee:set-variable variableName="fechaEntrega"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioPlanificacionProduccion/
+---
+payload.body.ns0#ConsultarCapacidadProduccionResponse.ns0#fechaEntrega as String default ""]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+
+                <logger level="INFO" doc:name="Log produccion" message="Tiempo fabricacion: #[vars.diasEstimados] dias, Entrega: #[vars.fechaEntrega]" />
+
+                <!-- ======================================== -->
+                <!-- PASO 3: Calcular coste de produccion      -->
+                <!-- ======================================== -->
+                <ee:transform doc:name="Preparar request CalculoCoste">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioCalculoCostes/
+---
+{
+  ns0#CalcularCosteProduccionRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idModelo: vars.idModelo,
+    ns0#configuracion: vars.configuracion
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Llamar CalcularCosteProduccion" config-ref="WSC_CalculoCostes" operation="CalcularCosteProduccion" />
+
+                <ee:transform doc:name="Guardar coste">
+                    <ee:variables>
+                        <ee:set-variable variableName="costeTotal"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioCalculoCostes/
+---
+payload.body.ns0#CalcularCosteProduccionResponse.ns0#costeTotal as Number default 0]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+
+                <logger level="INFO" doc:name="Log coste" message="Coste produccion: #[vars.costeTotal] EUR" />
+
+                <!-- ======================================== -->
+                <!-- PASO 4: Generar orden de produccion       -->
+                <!-- ======================================== -->
+                <ee:transform doc:name="Preparar request GenerarOrden">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioGeneracionOrdenProduccion/
+---
+{
+  ns0#GenerarOrdenProduccionRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idModelo: vars.idModelo,
+    ns0#configuracion: vars.configuracion
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Llamar GenerarOrdenProduccion" config-ref="WSC_GeneracionOrdenProduccion" operation="GenerarOrdenProduccion" />
+
+                <ee:transform doc:name="Guardar idOrden">
+                    <ee:variables>
+                        <ee:set-variable variableName="idOrden"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioGeneracionOrdenProduccion/
+---
+payload.body.ns0#GenerarOrdenProduccionResponse.ns0#idOrden as Number default 0]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+
+                <logger level="INFO" doc:name="Log orden" message="Orden de produccion generada: idOrden=#[vars.idOrden]" />
+
+                <!-- ======================================== -->
+                <!-- PASO 5: Registrar pedido de fabricacion   -->
+                <!-- ======================================== -->
+                <ee:transform doc:name="Preparar request RegistrarPedido">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioRegistroPedidos/
+---
+{
+  ns0#RegistrarPedidoFabricacionRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idOrden: vars.idOrden
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Llamar RegistrarPedidoFabricacion" config-ref="WSC_RegistroPedidos" operation="RegistrarPedidoFabricacion" />
+
+                <ee:transform doc:name="Guardar idPedido">
+                    <ee:variables>
+                        <ee:set-variable variableName="idPedido"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioRegistroPedidos/
+---
+payload.body.ns0#RegistrarPedidoFabricacionResponse.ns0#idPedido as Number default 0]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+
+                <logger level="INFO" doc:name="Log pedido" message="Pedido registrado: idPedido=#[vars.idPedido]" />
+
+                <!-- ======================================== -->
+                <!-- PASO 6: Notificar al concesionario        -->
+                <!-- ======================================== -->
+                <ee:transform doc:name="Preparar request Notificacion">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioNotificacionesPedido/
+---
+{
+  ns0#EnviarNotificacionPedidoRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idPedido: vars.idPedido,
+    ns0#mensajeAEnviar: "Pedido de fabricacion confirmado. Modelo " ++ (vars.idModelo as String) ++ ", Config: " ++ vars.configuracion ++ ". Coste: " ++ (vars.costeTotal as String) ++ " EUR. Entrega estimada: " ++ vars.fechaEntrega ++ " (" ++ (vars.diasEstimados as String) ++ " dias)."
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Llamar EnviarNotificacionPedido" config-ref="WSC_NotificacionesPedido" operation="EnviarNotificacionPedido" />
+
+                <logger level="INFO" doc:name="Log notificacion" message="Notificacion de pedido enviada al concesionario" />
+
+                <!-- Respuesta exitosa -->
+                <ee:transform doc:name="Respuesta exitosa">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  exito: true,
+  mensaje: "Pedido de fabricacion procesado exitosamente",
+  idPedido: vars.idPedido,
+  idOrden: vars.idOrden,
+  tiempoFabricacionDias: vars.diasEstimados,
+  costeTotal: vars.costeTotal,
+  fechaEntregaEstimada: vars.fechaEntrega
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <!-- Configuracion NO viable: notificar error -->
+                <ee:transform doc:name="Preparar notificacion error config">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioNotificacionesPedido/
+---
+{
+  ns0#EnviarNotificacionPedidoRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idPedido: 0,
+    ns0#mensajeAEnviar: "Configuracion no viable para modelo " ++ (vars.idModelo as String) ++ ". Motivo: " ++ vars.mensajeValidacion
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Notificar error configuracion" config-ref="WSC_NotificacionesPedido" operation="EnviarNotificacionPedido" />
+
+                <ee:transform doc:name="Respuesta error configuracion">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  exito: false,
+  mensaje: "La configuracion solicitada no es viable: " ++ vars.mensajeValidacion
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

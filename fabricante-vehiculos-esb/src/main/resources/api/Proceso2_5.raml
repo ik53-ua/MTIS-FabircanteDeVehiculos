@@ -1,0 +1,283 @@
+#%RAML 1.0
+title: API de Ventas y Facturación
+version: v1
+baseUri: http://localhost:8081/api/ventas/{version}
+mediaType: application/json
+
+types:
+  RespuestaBase:
+    type: object
+    properties:
+      mensaje:
+        type: string
+        required: false
+
+  VentaRequest:
+    type: object
+    properties:
+      vehiculoId:
+        type: string
+        required: false
+      clienteId:
+        type: string
+        required: false
+      precioTotal:
+        type: number
+        required: false
+
+  VentaResponse:
+    type: object
+    properties:
+      ventaId:
+        type: string
+        required: false
+      estado:
+        type: string
+        required: false
+
+  FacturaRequest:
+    type: object
+    properties:
+      ventaId:
+        type: string
+        required: false
+      importe:
+        type: number
+        required: false
+
+  FacturaResponse:
+    type: object
+    properties:
+      facturaId:
+        type: string
+        required: false
+      estado:
+        type: string
+        required: false
+
+  PagoRequest:
+    type: object
+    properties:
+      facturaId:
+        type: string
+        required: false
+      cantidad:
+        type: number
+        required: false
+
+  PagoResponse:
+    type: object
+    properties:
+      pagoId:
+        type: string
+        required: false
+      estado:
+        type: string
+        required: false
+
+  InventarioUpdateRequest:
+    type: object
+    properties:
+      estadoVehiculo:
+        type: string
+        required: false
+
+  GarantiaRequest:
+    type: object
+    properties:
+      vehiculoId:
+        type: string
+        required: false
+      duracionMeses:
+        type: integer
+        required: false
+
+  GarantiaResponse:
+    type: object
+    properties:
+      garantiaId:
+        type: string
+        required: false
+      estado:
+        type: string
+        required: false
+
+/ventas:
+  post:
+    description: Registrar venta del vehículo. Orquestador del proceso.
+    queryParameters:
+      WSKey:
+        type: string
+        required: true
+    body:
+      application/json:
+        type: VentaRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: VentaResponse
+      400:
+        body:
+          application/json:
+            type: RespuestaBase
+  /{id}:
+    get:
+      description: Consultar venta.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: VentaResponse
+        404:
+          body:
+            application/json:
+              type: RespuestaBase
+
+/facturas:
+  post:
+    description: Generar factura.
+    queryParameters:
+      WSKey:
+        type: string
+        required: true
+    body:
+      application/json:
+        type: FacturaRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: FacturaResponse
+      400:
+        body:
+          application/json:
+            type: RespuestaBase
+  /{id}:
+    get:
+      description: Consultar factura.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: FacturaResponse
+        404:
+          body:
+            application/json:
+              type: RespuestaBase
+
+/pagos:
+  post:
+    description: Registrar pago.
+    queryParameters:
+      WSKey:
+        type: string
+        required: true
+    body:
+      application/json:
+        type: PagoRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: PagoResponse
+      400:
+        body:
+          application/json:
+            type: RespuestaBase
+  /{id}:
+    get:
+      description: Consultar pago.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: PagoResponse
+        404:
+          body:
+            application/json:
+              type: RespuestaBase
+
+/inventario:
+  /{vehiculoId}:
+    get:
+      description: Consultar inventario del vehículo.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: RespuestaBase
+        404:
+          body:
+            application/json:
+              type: RespuestaBase
+    put:
+      description: Actualizar estado del vehículo.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+      body:
+        application/json:
+          type: InventarioUpdateRequest
+      responses:
+        200:
+          body:
+            application/json:
+              type: RespuestaBase
+        400:
+          body:
+            application/json:
+              type: RespuestaBase
+
+/garantias:
+  post:
+    description: Activar garantía.
+    queryParameters:
+      WSKey:
+        type: string
+        required: true
+    body:
+      application/json:
+        type: GarantiaRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: GarantiaResponse
+      400:
+        body:
+          application/json:
+            type: RespuestaBase
+  /{vehiculoId}:
+    get:
+      description: Consultar garantía.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: GarantiaResponse
+        404:
+          body:
+            application/json:
+              type: RespuestaBase

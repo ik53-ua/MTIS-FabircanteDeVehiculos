@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+
+    <!-- ============================================ -->
+    <!-- CONFIGURACIONES WEB SERVICE CONSUMER          -->
+    <!-- Cada servicio SOAP necesita su propia config  -->
+    <!-- ============================================ -->
+    <wsc:config name="WSC_StockConcesionario">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_1/ServicioStockConcesionario.wsdl"
+            service="ServicioStockConcesionario"
+            port="ServicioStockConcesionarioPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockConcesionario" />
+    </wsc:config>
+
+    <wsc:config name="WSC_StockFabricante">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_1/ServicioStockFabricante.wsdl"
+            service="ServicioStockFabricante"
+            port="ServicioStockFabricantePort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockFabricante" />
+    </wsc:config>
+
+    <wsc:config name="WSC_StockRed">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_1/ServicioStockRed.wsdl"
+            service="ServicioStockRed"
+            port="ServicioStockRedPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockRed" />
+    </wsc:config>
+
+    <wsc:config name="WSC_ReservaVehiculo">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_1/ServicioReservaVehiculo.wsdl"
+            service="ServicioReservaVehiculo"
+            port="ServicioReservaVehiculoPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioReservaVehiculo" />
+    </wsc:config>
+
+    <wsc:config name="WSC_RegistroReservas">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_1/ServicioRegistroReservas.wsdl"
+            service="ServicioRegistroReservas"
+            port="ServicioRegistroReservasPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioRegistroReservas" />
+    </wsc:config>
+
+    <wsc:config name="WSC_Notificaciones">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_1/ServicioNotificaciones.wsdl"
+            service="ServicioNotificaciones"
+            port="ServicioNotificacionesPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioNotificaciones" />
+    </wsc:config>
+
+    <!-- ============================================ -->
+    <!-- FLUJO ORQUESTADOR: Proceso 2.1                -->
+    <!-- Consulta y Reserva de Vehiculos en Stock      -->
+    <!-- Recibe HTTP JSON -> Orquesta servicios SOAP   -->
+    <!-- -> Devuelve JSON                              -->
+    <!-- ============================================ -->
+    <flow name="Proceso2_1-ReservaVehiculo">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/soap/reservaVehiculo" allowedMethods="POST">
+            <http:response statusCode="#[vars.httpStatusSoap default 200]" />
+            <http:error-response statusCode="500">
+                <http:body>#[payload]</http:body>
+            </http:error-response>
+        </http:listener>
+
+        <!-- 1. Extraer parametros del JSON de entrada -->
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="wsKey"><![CDATA[payload.WSKey]]></ee:set-variable>
+                <ee:set-variable variableName="idConcesionario"><![CDATA[payload.idConcesionario]]></ee:set-variable>
+                <ee:set-variable variableName="idModelo"><![CDATA[payload.idModelo]]></ee:set-variable>
+                <ee:set-variable variableName="idCliente"><![CDATA[payload.idCliente]]></ee:set-variable>
+                <ee:set-variable variableName="configuracion"><![CDATA[payload.configuracion]]></ee:set-variable>
+                <ee:set-variable variableName="stockEncontrado"><![CDATA[false]]></ee:set-variable>
+                <ee:set-variable variableName="origenStock"><![CDATA["NINGUNO"]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger level="INFO" doc:name="Inicio Proceso 2.1" message="Proceso 2.1 - Reserva Vehiculo: Concesionario=#[vars.idConcesionario], Modelo=#[vars.idModelo]" />
+
+        <!-- ======================================== -->
+        <!-- PASO 1: Consultar stock del concesionario -->
+        <!-- ======================================== -->
+        <ee:transform doc:name="Preparar request StockConcesionario">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioStockConcesionario/
+---
+{
+  ns0#ConsultarStockConcesionarioRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idModelo: vars.idModelo,
+    ns0#configuracion: vars.configuracion
+  }
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <wsc:consume doc:name="Llamar StockConcesionario" config-ref="WSC_StockConcesionario" operation="ConsultarStockConcesionario" />
+
+        <!-- Guardar respuesta y verificar disponibilidad -->
+        <ee:transform doc:name="Evaluar stock concesionario">
+            <ee:variables>
+                <ee:set-variable variableName="stockConcesionarioDisponible"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioStockConcesionario/
+---
+payload.body.ns0#ConsultarStockConcesionarioResponse.ns0#disponible as Boolean default false]]></ee:set-variable>
+                <ee:set-variable variableName="stockConcesionarioCantidad"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioStockConcesionario/
+---
+payload.body.ns0#ConsultarStockConcesionarioResponse.ns0#cantidad as Number default 0]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger level="INFO" doc:name="Log stock concesionario" message="Stock Concesionario: disponible=#[vars.stockConcesionarioDisponible], cantidad=#[vars.stockConcesionarioCantidad]" />
+
+        <!-- ======================================== -->
+        <!-- DECISIÓN: ¿Hay stock en el concesionario? -->
+        <!-- ======================================== -->
+        <choice doc:name="Hay stock en concesionario?">
+            <when expression="#[vars.stockConcesionarioDisponible == true]">
+                <ee:transform doc:name="Stock encontrado en concesionario">
+                    <ee:variables>
+                        <ee:set-variable variableName="stockEncontrado"><![CDATA[true]]></ee:set-variable>
+                        <ee:set-variable variableName="origenStock"><![CDATA["CONCESIONARIO"]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+                <logger level="INFO" doc:name="Log" message="Stock encontrado en CONCESIONARIO" />
+            </when>
+            <otherwise>
+                <!-- ======================================== -->
+                <!-- PASO 2: Consultar stock del fabricante    -->
+                <!-- ======================================== -->
+                <ee:transform doc:name="Preparar request StockFabricante">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioStockFabricante/
+---
+{
+  ns0#ConsultarStockFabricanteRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idModelo: vars.idModelo,
+    ns0#configuracion: vars.configuracion
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Llamar StockFabricante" config-ref="WSC_StockFabricante" operation="ConsultarStockFabricante" />
+
+                <ee:transform doc:name="Evaluar stock fabricante">
+                    <ee:variables>
+                        <ee:set-variable variableName="stockFabricanteDisponible"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioStockFabricante/
+---
+payload.body.ns0#ConsultarStockFabricanteResponse.ns0#disponible as Boolean default false]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+
+                <logger level="INFO" doc:name="Log stock fabricante" message="Stock Fabricante: disponible=#[vars.stockFabricanteDisponible]" />
+
+                <choice doc:name="Hay stock en fabricante?">
+                    <when expression="#[vars.stockFabricanteDisponible == true]">
+                        <ee:transform doc:name="Stock encontrado en fabricante">
+                            <ee:variables>
+                                <ee:set-variable variableName="stockEncontrado"><![CDATA[true]]></ee:set-variable>
+                                <ee:set-variable variableName="origenStock"><![CDATA["FABRICANTE"]]></ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+                        <logger level="INFO" doc:name="Log" message="Stock encontrado en FABRICANTE" />
+                    </when>
+                    <otherwise>
+                        <!-- ======================================== -->
+                        <!-- PASO 3: Consultar stock de la red         -->
+                        <!-- ======================================== -->
+                        <ee:transform doc:name="Preparar request StockRed">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioStockRed/
+---
+{
+  ns0#ConsultarStockRedRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idModelo: vars.idModelo,
+    ns0#configuracion: vars.configuracion
+  }
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+
+                        <wsc:consume doc:name="Llamar StockRed" config-ref="WSC_StockRed" operation="ConsultarStockRed" />
+
+                        <ee:transform doc:name="Evaluar stock red">
+                            <ee:variables>
+                                <ee:set-variable variableName="stockRedDisponible"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioStockRed/
+---
+payload.body.ns0#ConsultarStockRedResponse.ns0#disponible as Boolean default false]]></ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <logger level="INFO" doc:name="Log stock red" message="Stock Red: disponible=#[vars.stockRedDisponible]" />
+
+                        <choice doc:name="Hay stock en la red?">
+                            <when expression="#[vars.stockRedDisponible == true]">
+                                <ee:transform doc:name="Stock encontrado en red">
+                                    <ee:variables>
+                                        <ee:set-variable variableName="stockEncontrado"><![CDATA[true]]></ee:set-variable>
+                                        <ee:set-variable variableName="origenStock"><![CDATA["RED_CONCESIONARIOS"]]></ee:set-variable>
+                                    </ee:variables>
+                                </ee:transform>
+                                <logger level="INFO" doc:name="Log" message="Stock encontrado en RED DE CONCESIONARIOS" />
+                            </when>
+                            <otherwise>
+                                <logger level="INFO" doc:name="Log sin stock" message="NO hay stock en ningun origen" />
+                            </otherwise>
+                        </choice>
+                    </otherwise>
+                </choice>
+            </otherwise>
+        </choice>
+
+        <!-- ======================================== -->
+        <!-- DECISIÓN FINAL: ¿Se encontró stock?       -->
+        <!-- ======================================== -->
+        <choice doc:name="Se encontro stock?">
+            <when expression="#[vars.stockEncontrado == true]">
+
+                <!-- ======================================== -->
+                <!-- PASO 4: Bloquear vehículo                 -->
+                <!-- ======================================== -->
+                <ee:transform doc:name="Preparar request BloquearVehiculo">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioReservaVehiculo/
+---
+{
+  ns0#BloquearVehiculoRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idModelo: vars.idModelo
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Llamar BloquearVehiculo" config-ref="WSC_ReservaVehiculo" operation="BloquearVehiculo" />
+
+                <ee:transform doc:name="Guardar codigo bloqueo">
+                    <ee:variables>
+                        <ee:set-variable variableName="codigoBloqueo"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioReservaVehiculo/
+---
+payload.body.ns0#BloquearVehiculoResponse.ns0#codigoBloqueo as String default ""]]></ee:set-variable>
+                        <ee:set-variable variableName="bloqueoExito"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioReservaVehiculo/
+---
+payload.body.ns0#BloquearVehiculoResponse.ns0#exito as Boolean default false]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+
+                <logger level="INFO" doc:name="Log bloqueo" message="Bloqueo: exito=#[vars.bloqueoExito], codigo=#[vars.codigoBloqueo]" />
+
+                <choice doc:name="Bloqueo exitoso?">
+                    <when expression="#[vars.bloqueoExito == true]">
+
+                        <!-- ======================================== -->
+                        <!-- PASO 5: Registrar la reserva              -->
+                        <!-- ======================================== -->
+                        <ee:transform doc:name="Preparar request RegistrarReserva">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioRegistroReservas/
+---
+{
+  ns0#RegistrarReservaRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idModelo: vars.idModelo,
+    ns0#codigoBloqueo: vars.codigoBloqueo
+  }
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+
+                        <wsc:consume doc:name="Llamar RegistrarReserva" config-ref="WSC_RegistroReservas" operation="RegistrarReserva" />
+
+                        <ee:transform doc:name="Guardar datos reserva">
+                            <ee:variables>
+                                <ee:set-variable variableName="idReserva"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioRegistroReservas/
+---
+payload.body.ns0#RegistrarReservaResponse.ns0#idReserva as Number default 0]]></ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <logger level="INFO" doc:name="Log reserva" message="Reserva registrada: idReserva=#[vars.idReserva]" />
+
+                        <!-- ======================================== -->
+                        <!-- PASO 6: Notificar al concesionario        -->
+                        <!-- ======================================== -->
+                        <ee:transform doc:name="Preparar request Notificacion">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioNotificaciones/
+---
+{
+  ns0#EnviarConfirmacionRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idReserva: vars.idReserva,
+    ns0#mensajeAEnviar: "Reserva confirmada. Vehiculo modelo " ++ (vars.idModelo as String) ++ " reservado desde " ++ vars.origenStock ++ ". Codigo de bloqueo: " ++ vars.codigoBloqueo
+  }
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+
+                        <wsc:consume doc:name="Llamar EnviarConfirmacion" config-ref="WSC_Notificaciones" operation="EnviarConfirmacion" />
+
+                        <logger level="INFO" doc:name="Log notificacion" message="Notificacion enviada al concesionario" />
+
+                        <!-- Respuesta exitosa -->
+                        <ee:transform doc:name="Respuesta exitosa">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  exito: true,
+  mensaje: "Reserva completada exitosamente",
+  idReserva: vars.idReserva,
+  origenStock: vars.origenStock,
+  codigoBloqueo: vars.codigoBloqueo
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+                    </when>
+                    <otherwise>
+                        <!-- Error al bloquear -->
+                        <ee:transform doc:name="Error bloqueo">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  exito: false,
+  mensaje: "Error: No se pudo bloquear el vehiculo"
+}]]></ee:set-payload>
+                            </ee:message>
+                            <ee:variables>
+                                <ee:set-variable variableName="httpStatusSoap">500</ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+                    </otherwise>
+                </choice>
+            </when>
+            <otherwise>
+                <!-- No hay stock en ningún lado: notificar sin stock -->
+                <ee:transform doc:name="Preparar notificacion sin stock">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioNotificaciones/
+---
+{
+  ns0#EnviarConfirmacionRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idReserva: 0,
+    ns0#mensajeAEnviar: "No hay stock disponible para el modelo " ++ (vars.idModelo as String) ++ " en ninguna ubicacion."
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Notificar sin stock" config-ref="WSC_Notificaciones" operation="EnviarConfirmacion" />
+
+                <ee:transform doc:name="Respuesta sin stock">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  exito: false,
+  mensaje: "No hay stock disponible para el modelo solicitado en ningun concesionario, fabricante ni red",
+  origenStock: "NINGUNO"
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:tns="http://mtis.org/ServicioLogisticaEnvios/"
+                  targetNamespace="http://mtis.org/ServicioLogisticaEnvios/">
+
+    <wsdl:types>
+        <xs:schema targetNamespace="http://mtis.org/ServicioLogisticaEnvios/" elementFormDefault="qualified">
+            <xs:element name="GestionarEnvioRepuestosRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="WSKey" type="xs:string"/>
+                        <xs:element name="idPedido" type="xs:int"/>
+                        <xs:element name="idConcesionario" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="GestionarEnvioRepuestosResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="exito" type="xs:boolean"/>
+                        <xs:element name="mensaje" type="xs:string"/>
+                        <xs:element name="idEnvio" type="xs:int" minOccurs="0"/>
+                        <xs:element name="fechaEstimada" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="GestionarEnvioRepuestosRequestMessage">
+        <wsdl:part name="parameters" element="tns:GestionarEnvioRepuestosRequest"/>
+    </wsdl:message>
+    <wsdl:message name="GestionarEnvioRepuestosResponseMessage">
+        <wsdl:part name="parameters" element="tns:GestionarEnvioRepuestosResponse"/>
+    </wsdl:message>
+
+    <wsdl:portType name="ServicioLogisticaEnviosPortType">
+        <wsdl:operation name="GestionarEnvioRepuestos">
+            <wsdl:input message="tns:GestionarEnvioRepuestosRequestMessage"/>
+            <wsdl:output message="tns:GestionarEnvioRepuestosResponseMessage"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="ServicioLogisticaEnviosSoapBinding" type="tns:ServicioLogisticaEnviosPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="GestionarEnvioRepuestos">
+            <soap:operation soapAction="http://mtis.org/ServicioLogisticaEnvios/GestionarEnvioRepuestos"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="ServicioLogisticaEnvios">
+        <wsdl:port name="ServicioLogisticaEnviosPort" binding="tns:ServicioLogisticaEnviosSoapBinding">
+            <soap:address location="http://localhost:8080/FabricanteDeVehiculos/services/ServicioLogisticaEnvios"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

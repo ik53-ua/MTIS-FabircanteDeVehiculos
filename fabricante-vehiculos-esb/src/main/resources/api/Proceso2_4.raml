@@ -1,0 +1,194 @@
+#%RAML 1.0
+title: API de Producción y Reabastecimiento
+version: v1
+baseUri: http://localhost:8081/api/produccion/v1
+mediaType: application/json
+
+types:
+  RespuestaBase:
+    type: object
+    properties:
+      mensaje:
+        type: string
+        required: false
+
+  PedidoCompraRequest:
+    type: object
+    properties:
+      componenteId:
+        type: string
+        required: false
+      cantidadRequerida:
+        type: integer
+        required: false
+
+  PedidoCompraResponse:
+    type: object
+    properties:
+      pedidoId:
+        type: string
+        required: false
+      estado:
+        type: string
+        required: false
+
+  InventarioResponse:
+    type: object
+    properties:
+      componenteId:
+        type: string
+        required: false
+      cantidadActual:
+        type: integer
+        required: false
+
+  ComponenteResponse:
+    type: object
+    properties:
+      componenteId:
+        type: string
+        required: false
+      nombre:
+        type: string
+        required: false
+      proveedorId:
+        type: string
+        required: false
+
+  ProveedorResponse:
+    type: object
+    properties:
+      proveedorId:
+        type: string
+        required: false
+      nombreEmpresa:
+        type: string
+        required: false
+
+  PlanificacionUpdateRequest:
+    type: object
+    properties:
+      estadoProduccion:
+        type: string
+        required: false
+      nuevaFechaReanudacion:
+        type: date-only
+        required: false
+
+/pedidosCompra:
+  post:
+    description: Crear orden de compra automática. Orquestador del proceso.
+    queryParameters:
+      WSKey:
+        type: string
+        required: true
+        description: Clave de acceso requerida para realizar la operación.
+    body:
+      application/json:
+        type: PedidoCompraRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: PedidoCompraResponse
+      400:
+        body:
+          application/json:
+            type: RespuestaBase
+
+  /{id}:
+    get:
+      description: Consultar orden de compra.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+          description: Clave de acceso requerida para realizar la operación.
+      responses:
+        200:
+          body:
+            application/json:
+              type: PedidoCompraResponse
+        404:
+          body:
+            application/json:
+              type: RespuestaBase
+
+/inventario:
+  /{componenteId}:
+    get:
+      description: Consultar stock de un componente.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+          description: Clave de acceso requerida para realizar la operación.
+      responses:
+        200:
+          body:
+            application/json:
+              type: InventarioResponse
+        404:
+          body:
+            application/json:
+              type: RespuestaBase
+
+/componentes:
+  /{id}:
+    get:
+      description: Obtener información del componente.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+          description: Clave de acceso requerida para realizar la operación.
+      responses:
+        200:
+          body:
+            application/json:
+              type: ComponenteResponse
+        404:
+          body:
+            application/json:
+              type: RespuestaBase
+
+/proveedores:
+  /{id}:
+    get:
+      description: Consultar datos del proveedor.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+          description: Clave de acceso requerida para realizar la operación.
+      responses:
+        200:
+          body:
+            application/json:
+              type: ProveedorResponse
+        404:
+          body:
+            application/json:
+              type: RespuestaBase
+
+/planificacionProduccion:
+  /{id}:
+    put:
+      description: Actualizar planificación de producción.
+      queryParameters:
+        WSKey:
+          type: string
+          required: true
+          description: Clave de acceso requerida para realizar la operación.
+      body:
+        application/json:
+          type: PlanificacionUpdateRequest
+      responses:
+        200:
+          body:
+            application/json:
+              type: RespuestaBase
+        400:
+          body:
+            application/json:
+              type: RespuestaBase

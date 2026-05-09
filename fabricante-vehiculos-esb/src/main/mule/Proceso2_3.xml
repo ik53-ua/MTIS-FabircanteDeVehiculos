@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+
+    <!-- ============================================ -->
+    <!-- CONFIGURACIONES WEB SERVICE CONSUMER 2.3      -->
+    <!-- ============================================ -->
+    <wsc:config name="WSC_CatalogoPiezas">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_3/ServicioCatalogoPiezas.wsdl"
+            service="ServicioCatalogoPiezas"
+            port="ServicioCatalogoPiezasPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioCatalogoPiezas" />
+    </wsc:config>
+
+    <wsc:config name="WSC_StockRepuestos">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_3/ServicioStockRepuestos.wsdl"
+            service="ServicioStockRepuestos"
+            port="ServicioStockRepuestosPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockRepuestos" />
+    </wsc:config>
+
+    <wsc:config name="WSC_PedidosRepuestos">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_3/ServicioPedidosRepuestos.wsdl"
+            service="ServicioPedidosRepuestos"
+            port="ServicioPedidosRepuestosPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioPedidosRepuestos" />
+    </wsc:config>
+
+    <wsc:config name="WSC_LogisticaEnvios">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_3/ServicioLogisticaEnvios.wsdl"
+            service="ServicioLogisticaEnvios"
+            port="ServicioLogisticaEnviosPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioLogisticaEnvios" />
+    </wsc:config>
+
+    <wsc:config name="WSC_NotificacionesEntrega">
+        <wsc:connection
+            wsdlLocation="wsdl/proceso2_3/ServicioNotificacionesEntrega.wsdl"
+            service="ServicioNotificacionesEntrega"
+            port="ServicioNotificacionesEntregaPort"
+            address="http://localhost:8080/FabricanteDeVehiculos/services/ServicioNotificacionesEntrega" />
+    </wsc:config>
+
+    <!-- ============================================ -->
+    <!-- FLUJO ORQUESTADOR: Proceso 2.3                -->
+    <!-- Solicitud de Piezas para Mantenimiento        -->
+    <!-- Orquesta: consultar pieza -> consultar stock  -->
+    <!--   -> si no hay stock, pedir al almacen central -->
+    <!--   -> gestionar envio -> notificar             -->
+    <!-- ============================================ -->
+    <flow name="Proceso2_3-SolicitudRepuestos">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/soap/solicitudRepuestos" allowedMethods="POST">
+            <http:response statusCode="#[vars.httpStatusSoap3 default 200]" />
+            <http:error-response statusCode="500">
+                <http:body>#[payload]</http:body>
+            </http:error-response>
+        </http:listener>
+
+        <!-- 1. Extraer parametros del JSON de entrada -->
+        <ee:transform doc:name="Extraer parametros">
+            <ee:variables>
+                <ee:set-variable variableName="wsKey"><![CDATA[payload.WSKey]]></ee:set-variable>
+                <ee:set-variable variableName="idConcesionario"><![CDATA[payload.idConcesionario]]></ee:set-variable>
+                <ee:set-variable variableName="idPieza"><![CDATA[payload.idPieza]]></ee:set-variable>
+                <ee:set-variable variableName="cantidad"><![CDATA[payload.cantidad]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger level="INFO" doc:name="Inicio Proceso 2.3" message="Proceso 2.3 - Solicitud Repuestos: Concesionario=#[vars.idConcesionario], Pieza=#[vars.idPieza], Cantidad=#[vars.cantidad]" />
+
+        <!-- ======================================== -->
+        <!-- PASO 1: Consultar catalogo de la pieza    -->
+        <!-- ======================================== -->
+        <ee:transform doc:name="Preparar request ConsultarPieza">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioCatalogoPiezas/
+---
+{
+  ns0#ConsultarPiezaRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idPieza: vars.idPieza
+  }
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <wsc:consume doc:name="Llamar ConsultarPieza" config-ref="WSC_CatalogoPiezas" operation="ConsultarPieza" />
+
+        <ee:transform doc:name="Guardar datos pieza">
+            <ee:variables>
+                <ee:set-variable variableName="piezaExito"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioCatalogoPiezas/
+---
+payload.body.ns0#ConsultarPiezaResponse.ns0#exito as Boolean default false]]></ee:set-variable>
+                <ee:set-variable variableName="nombrePieza"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioCatalogoPiezas/
+---
+payload.body.ns0#ConsultarPiezaResponse.ns0#nombrePieza as String default ""]]></ee:set-variable>
+                <ee:set-variable variableName="precioPieza"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioCatalogoPiezas/
+---
+payload.body.ns0#ConsultarPiezaResponse.ns0#precio as Number default 0]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger level="INFO" doc:name="Log pieza" message="Pieza encontrada: #[vars.nombrePieza], Precio: #[vars.precioPieza]" />
+
+        <choice doc:name="Pieza existe en catalogo?">
+            <when expression="#[vars.piezaExito == true]">
+
+                <!-- ======================================== -->
+                <!-- PASO 2: Consultar stock en concesionario  -->
+                <!-- ======================================== -->
+                <ee:transform doc:name="Preparar request StockRepuestos">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioStockRepuestos/
+---
+{
+  ns0#ConsultarStockRepuestosRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idPieza: vars.idPieza
+  }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+
+                <wsc:consume doc:name="Llamar ConsultarStockRepuestos" config-ref="WSC_StockRepuestos" operation="ConsultarStockRepuestos" />
+
+                <ee:transform doc:name="Evaluar stock repuestos">
+                    <ee:variables>
+                        <ee:set-variable variableName="cantidadDisponible"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioStockRepuestos/
+---
+payload.body.ns0#ConsultarStockRepuestosResponse.ns0#cantidadDisponible as Number default 0]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+
+                <logger level="INFO" doc:name="Log stock repuestos" message="Stock repuestos en concesionario: disponible=#[vars.cantidadDisponible], necesario=#[vars.cantidad]" />
+
+                <!-- ======================================== -->
+                <!-- DECISIÓN: ¿Hay stock suficiente local?    -->
+                <!-- ======================================== -->
+                <choice doc:name="Stock local suficiente?">
+                    <when expression="#[vars.cantidadDisponible >= vars.cantidad]">
+                        <!-- Stock local suficiente -->
+                        <logger level="INFO" doc:name="Log stock OK" message="Stock local suficiente. No se necesita pedido al almacen central." />
+
+                        <ee:transform doc:name="Preparar notificacion stock local">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioNotificacionesEntrega/
+---
+{
+  ns0#EnviarNotificacionEntregaRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#fechaRecepcionEstimada: "Disponible inmediatamente en almacen local"
+  }
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+
+                        <wsc:consume doc:name="Notificar disponibilidad local" config-ref="WSC_NotificacionesEntrega" operation="EnviarNotificacionEntrega" />
+
+                        <ee:transform doc:name="Respuesta stock local">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  exito: true,
+  mensaje: "Piezas disponibles en el almacen local del concesionario",
+  pieza: vars.nombrePieza,
+  cantidadDisponible: vars.cantidadDisponible,
+  cantidadSolicitada: vars.cantidad,
+  origen: "ALMACEN_LOCAL",
+  fechaRecepcion: "Inmediata"
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+                    </when>
+                    <otherwise>
+                        <!-- Stock local insuficiente: pedir al almacen central -->
+                        <logger level="INFO" doc:name="Log sin stock" message="Stock local insuficiente. Generando pedido al almacen central." />
+
+                        <!-- ======================================== -->
+                        <!-- PASO 3: Generar pedido al almacen central -->
+                        <!-- ======================================== -->
+                        <ee:transform doc:name="Preparar request PedidoRepuestos">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioPedidosRepuestos/
+---
+{
+  ns0#GenerarPedidoRepuestosRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#idPieza: vars.idPieza,
+    ns0#cantidad: vars.cantidad
+  }
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+
+                        <wsc:consume doc:name="Llamar GenerarPedidoRepuestos" config-ref="WSC_PedidosRepuestos" operation="GenerarPedidoRepuestos" />
+
+                        <ee:transform doc:name="Guardar idPedido">
+                            <ee:variables>
+                                <ee:set-variable variableName="idPedidoRepuesto"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioPedidosRepuestos/
+---
+payload.body.ns0#GenerarPedidoRepuestosResponse.ns0#idPedido as Number default 0]]></ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <logger level="INFO" doc:name="Log pedido" message="Pedido generado: idPedido=#[vars.idPedidoRepuesto]" />
+
+                        <!-- ======================================== -->
+                        <!-- PASO 4: Gestionar envio logistico         -->
+                        <!-- ======================================== -->
+                        <ee:transform doc:name="Preparar request GestionarEnvio">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioLogisticaEnvios/
+---
+{
+  ns0#GestionarEnvioRepuestosRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idPedido: vars.idPedidoRepuesto,
+    ns0#idConcesionario: vars.idConcesionario
+  }
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+
+                        <wsc:consume doc:name="Llamar GestionarEnvioRepuestos" config-ref="WSC_LogisticaEnvios" operation="GestionarEnvioRepuestos" />
+
+                        <ee:transform doc:name="Guardar datos envio">
+                            <ee:variables>
+                                <ee:set-variable variableName="idEnvio"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioLogisticaEnvios/
+---
+payload.body.ns0#GestionarEnvioRepuestosResponse.ns0#idEnvio as Number default 0]]></ee:set-variable>
+                                <ee:set-variable variableName="fechaEstimada"><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://mtis.org/ServicioLogisticaEnvios/
+---
+payload.body.ns0#GestionarEnvioRepuestosResponse.ns0#fechaEstimada as String default ""]]></ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+
+                        <logger level="INFO" doc:name="Log envio" message="Envio gestionado: idEnvio=#[vars.idEnvio], fechaEstimada=#[vars.fechaEstimada]" />
+
+                        <!-- ======================================== -->
+                        <!-- PASO 5: Notificar fecha de recepcion      -->
+                        <!-- ======================================== -->
+                        <ee:transform doc:name="Preparar request Notificacion">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://mtis.org/ServicioNotificacionesEntrega/
+---
+{
+  ns0#EnviarNotificacionEntregaRequest: {
+    ns0#WSKey: vars.wsKey,
+    ns0#idConcesionario: vars.idConcesionario,
+    ns0#fechaRecepcionEstimada: vars.fechaEstimada
+  }
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+
+                        <wsc:consume doc:name="Llamar EnviarNotificacionEntrega" config-ref="WSC_NotificacionesEntrega" operation="EnviarNotificacionEntrega" />
+
+                        <logger level="INFO" doc:name="Log notificacion" message="Notificacion de entrega enviada al concesionario" />
+
+                        <!-- Respuesta exitosa -->
+                        <ee:transform doc:name="Respuesta pedido almacen central">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  exito: true,
+  mensaje: "Pedido de repuestos generado y envio tramitado",
+  pieza: vars.nombrePieza,
+  cantidadSolicitada: vars.cantidad,
+  idPedido: vars.idPedidoRepuesto,
+  idEnvio: vars.idEnvio,
+  origen: "ALMACEN_CENTRAL",
+  fechaRecepcionEstimada: vars.fechaEstimada
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+                    </otherwise>
+                </choice>
+            </when>
+            <otherwise>
+                <!-- Pieza no encontrada en catalogo -->
+                <ee:transform doc:name="Respuesta pieza no encontrada">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  exito: false,
+  mensaje: "Error: La pieza solicitada no existe en el catalogo"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatusSoap3">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>
