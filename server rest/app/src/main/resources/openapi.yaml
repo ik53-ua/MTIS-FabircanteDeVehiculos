@@ -1,0 +1,535 @@
+openapi: 3.0.0
+info:
+  description: Contrato REST para el proceso de Registro y Cierre de Venta Final (Punto
+    2.5).
+  title: API de Ventas y Facturación
+  version: 1.0.0
+servers:
+- description: Servidor Local - Ventas
+  url: http://localhost:8080/api/ventas/v1
+tags:
+- description: Gestión de ventas y registro de transacciones
+  name: Ventas
+- description: Generación y consulta de facturas
+  name: Facturas
+- description: Procesamiento y consulta de pagos
+  name: Pagos
+- description: Gestión del inventario de vehículos
+  name: Inventario
+- description: Activación y consulta de garantías de vehículos
+  name: Garantías
+paths:
+  /ventas:
+    post:
+      description: Registrar la venta del vehículo. Orquestador del proceso.
+      parameters:
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VentaRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VentaResponse"
+          description: Venta registrada con éxito.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Registrar venta del vehículo
+      tags:
+      - Ventas
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Ventas
+  /ventas/{id}:
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VentaResponse"
+          description: Datos de la venta obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar venta
+      tags:
+      - Ventas
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Ventas
+  /facturas:
+    post:
+      parameters:
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FacturaRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacturaResponse"
+          description: Factura generada correctamente.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Generar factura
+      tags:
+      - Facturas
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Facturas
+  /facturas/{id}:
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacturaResponse"
+          description: Datos de la factura obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar factura
+      tags:
+      - Facturas
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Facturas
+  /pagos:
+    post:
+      parameters:
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PagoRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagoResponse"
+          description: Pago procesado correctamente.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Registrar pago
+      tags:
+      - Pagos
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Pagos
+  /pagos/{id}:
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagoResponse"
+          description: Datos del pago obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar pago
+      tags:
+      - Pagos
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Pagos
+  /inventario/{vehiculoId}:
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: vehiculoId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: Estado del vehículo obtenido.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar inventario del vehículo
+      tags:
+      - Inventario
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Inventario
+    put:
+      parameters:
+      - explode: false
+        in: path
+        name: vehiculoId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventarioUpdateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: Inventario actualizado.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Actualizar estado del vehículo
+      tags:
+      - Inventario
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Inventario
+  /garantias:
+    post:
+      parameters:
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GarantiaRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GarantiaResponse"
+          description: Garantía activada correctamente.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Activar garantía
+      tags:
+      - Garantías
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Garantías
+  /garantias/{vehiculoId}:
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: vehiculoId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Clave de acceso requerida para realizar la operación.
+        explode: true
+        in: query
+        name: WSKey
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GarantiaResponse"
+          description: Datos de la garantía obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar garantía
+      tags:
+      - Garantías
+      x-accepts:
+      - application/json
+      x-tags:
+      - tag: Garantías
+components:
+  parameters:
+    WSKey:
+      description: Clave de acceso requerida para realizar la operación.
+      explode: true
+      in: query
+      name: WSKey
+      required: true
+      schema:
+        type: string
+      style: form
+  responses:
+    Error400:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RespuestaBase"
+      description: "Error en la petición (ej. clave WSKey inválida, recurso no encontrado)"
+  schemas:
+    RespuestaBase:
+      example:
+        mensaje: mensaje
+      properties:
+        mensaje:
+          description: Resultado de la operación o detalle del error.
+          type: string
+      type: object
+    VentaRequest:
+      example:
+        clienteId: clienteId
+        vehiculoId: vehiculoId
+        precioTotal: 0.8008281904610115
+      properties:
+        vehiculoId:
+          type: string
+        clienteId:
+          type: string
+        precioTotal:
+          type: number
+      type: object
+    VentaResponse:
+      example:
+        estado: estado
+        ventaId: ventaId
+      properties:
+        ventaId:
+          type: string
+        estado:
+          type: string
+      type: object
+    FacturaRequest:
+      example:
+        ventaId: ventaId
+        importe: 0.8008281904610115
+      properties:
+        ventaId:
+          type: string
+        importe:
+          type: number
+      type: object
+    FacturaResponse:
+      example:
+        estado: estado
+        facturaId: facturaId
+      properties:
+        facturaId:
+          type: string
+        estado:
+          type: string
+      type: object
+    PagoRequest:
+      example:
+        facturaId: facturaId
+        cantidad: 0.8008281904610115
+      properties:
+        facturaId:
+          type: string
+        cantidad:
+          type: number
+      type: object
+    PagoResponse:
+      example:
+        pagoId: pagoId
+        estado: estado
+      properties:
+        pagoId:
+          type: string
+        estado:
+          type: string
+      type: object
+    InventarioUpdateRequest:
+      example:
+        estadoVehiculo: estadoVehiculo
+      properties:
+        estadoVehiculo:
+          type: string
+      type: object
+    GarantiaRequest:
+      example:
+        vehiculoId: vehiculoId
+        duracionMeses: 0
+      properties:
+        vehiculoId:
+          type: string
+        duracionMeses:
+          type: integer
+      type: object
+    GarantiaResponse:
+      example:
+        estado: estado
+        garantiaId: garantiaId
+      properties:
+        garantiaId:
+          type: string
+        estado:
+          type: string
+      type: object

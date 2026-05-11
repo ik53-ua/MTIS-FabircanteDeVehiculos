@@ -1,0 +1,682 @@
+openapi: 3.0.0
+info:
+  description: API REST unificada que integra Producción (2.4) y Ventas (2.5)
+  title: API Unificada - Fabricante de Vehículos
+  version: 1.0.0
+servers:
+- description: Servidor Local
+  url: http://localhost:8000/api
+tags:
+- description: Gestión de órdenes de compra automáticas
+  name: Pedidos de Compra
+- description: Consulta y actualización de niveles de inventario (componentes)
+  name: Producción - Inventario
+- description: Información de componentes y catálogo
+  name: Componentes
+- description: Datos y gestión de proveedores
+  name: Proveedores
+- description: Gestión de la planificación de producción
+  name: Planificación de Producción
+- description: Gestión de ventas y registro de transacciones
+  name: Ventas
+- description: Generación y consulta de facturas
+  name: Facturas
+- description: Procesamiento y consulta de pagos
+  name: Pagos
+- description: Gestión del inventario de vehículos
+  name: Ventas - Inventario
+- description: Activación y consulta de garantías de vehículos
+  name: Garantías
+paths:
+  /produccion/pedidosCompra:
+    post:
+      description: Genera una orden de compra automáticamente. Orquestador del proceso.
+      operationId: produccionPedidosCompraPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PedidoCompraRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PedidoCompraResponse"
+          description: Orden de compra generada.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Crear orden de compra automática
+      tags:
+      - Pedidos de Compra
+      x-eov-operation-handler: controllers/PedidosDeCompraController
+  /produccion/pedidosCompra/{id}:
+    get:
+      operationId: produccionPedidosCompraIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PedidoCompraResponse"
+          description: Información del pedido obtenida.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar orden de compra
+      tags:
+      - Pedidos de Compra
+      x-eov-operation-handler: controllers/PedidosDeCompraController
+  /produccion/inventario/{componenteId}:
+    get:
+      operationId: produccionInventarioComponenteIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: componenteId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventarioResponse"
+          description: Nivel de inventario obtenido.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar stock de un componente
+      tags:
+      - Producción - Inventario
+      x-eov-operation-handler: controllers/ProduccinInventarioController
+  /produccion/componentes/{id}:
+    get:
+      operationId: produccionComponentesIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComponenteResponse"
+          description: Información del componente obtenida.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Obtener información del componente
+      tags:
+      - Componentes
+      x-eov-operation-handler: controllers/ComponentesController
+  /produccion/proveedores/{id}:
+    get:
+      operationId: produccionProveedoresIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProveedorResponse"
+          description: Datos del proveedor obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar datos del proveedor
+      tags:
+      - Proveedores
+      x-eov-operation-handler: controllers/ProveedoresController
+  /produccion/planificacionProduccion/{id}:
+    put:
+      operationId: produccionPlanificacionProduccionIdPUT
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanificacionUpdateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: Planificación actualizada.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Actualizar planificación
+      tags:
+      - Planificación de Producción
+      x-eov-operation-handler: controllers/PlanificacinDeProduccinController
+  /ventas/registrar:
+    post:
+      description: Registrar la venta del vehículo. Orquestador del proceso.
+      operationId: ventasRegistrarPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VentaRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VentaResponse"
+          description: Venta registrada con éxito.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Registrar venta del vehículo
+      tags:
+      - Ventas
+      x-eov-operation-handler: controllers/VentasController
+  /ventas/{id}:
+    get:
+      operationId: ventasIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VentaResponse"
+          description: Datos de la venta obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar venta
+      tags:
+      - Ventas
+      x-eov-operation-handler: controllers/VentasController
+  /ventas/facturas:
+    post:
+      operationId: ventasFacturasPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FacturaRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacturaResponse"
+          description: Factura generada correctamente.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Generar factura
+      tags:
+      - Facturas
+      x-eov-operation-handler: controllers/FacturasController
+  /ventas/facturas/{id}:
+    get:
+      operationId: ventasFacturasIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacturaResponse"
+          description: Datos de la factura obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar factura
+      tags:
+      - Facturas
+      x-eov-operation-handler: controllers/FacturasController
+  /ventas/pagos:
+    post:
+      operationId: ventasPagosPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PagoRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagoResponse"
+          description: Pago procesado correctamente.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Registrar pago
+      tags:
+      - Pagos
+      x-eov-operation-handler: controllers/PagosController
+  /ventas/pagos/{id}:
+    get:
+      operationId: ventasPagosIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagoResponse"
+          description: Datos del pago obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar pago
+      tags:
+      - Pagos
+      x-eov-operation-handler: controllers/PagosController
+  /ventas/inventario/{vehiculoId}:
+    get:
+      operationId: ventasInventarioVehiculoIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: vehiculoId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: Estado del vehículo obtenido.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar inventario del vehículo
+      tags:
+      - Ventas - Inventario
+      x-eov-operation-handler: controllers/VentasInventarioController
+    put:
+      operationId: ventasInventarioVehiculoIdPUT
+      parameters:
+      - explode: false
+        in: path
+        name: vehiculoId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventarioUpdateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: Inventario actualizado.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Actualizar estado del vehículo
+      tags:
+      - Ventas - Inventario
+      x-eov-operation-handler: controllers/VentasInventarioController
+  /ventas/garantias:
+    post:
+      operationId: ventasGarantiasPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GarantiaRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GarantiaResponse"
+          description: Garantía activada correctamente.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Activar garantía
+      tags:
+      - Garantías
+      x-eov-operation-handler: controllers/GarantasController
+  /ventas/garantias/{vehiculoId}:
+    get:
+      operationId: ventasGarantiasVehiculoIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: vehiculoId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GarantiaResponse"
+          description: Datos de la garantía obtenidos.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaBase"
+          description: "Error en la petición (ej. clave WSKey inválida, recurso no\
+            \ encontrado)"
+      summary: Consultar garantía
+      tags:
+      - Garantías
+      x-eov-operation-handler: controllers/GarantasController
+components:
+  parameters: {}
+  responses:
+    Error400:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RespuestaBase"
+      description: "Error en la petición (ej. clave WSKey inválida, recurso no encontrado)"
+  schemas:
+    RespuestaBase:
+      example:
+        mensaje: mensaje
+      properties:
+        mensaje:
+          description: Resultado de la operación o detalle del error.
+          type: string
+      type: object
+    PedidoCompraRequest:
+      example:
+        cantidadRequerida: 10
+        componenteId: 2
+      properties:
+        componenteId:
+          oneOf:
+            - type: integer
+            - type: string
+        cantidadRequerida:
+          type: integer
+      type: object
+    PedidoCompraResponse:
+      example:
+        estado: estado
+        pedidoId: pedidoId
+      properties:
+        pedidoId:
+          type: string
+        estado:
+          type: string
+      type: object
+    InventarioResponse:
+      example:
+        cantidadActual: 0
+        componenteId: componenteId
+      properties:
+        componenteId:
+          type: string
+        cantidadActual:
+          type: integer
+      type: object
+    ComponenteResponse:
+      example:
+        proveedorId: proveedorId
+        componenteId: componenteId
+        nombre: nombre
+      properties:
+        componenteId:
+          type: string
+        nombre:
+          type: string
+        proveedorId:
+          type: string
+      type: object
+    ProveedorResponse:
+      example:
+        proveedorId: proveedorId
+        nombreEmpresa: nombreEmpresa
+      properties:
+        proveedorId:
+          type: string
+        nombreEmpresa:
+          type: string
+      type: object
+    PlanificacionUpdateRequest:
+      example:
+        estadoProduccion: estadoProduccion
+        nuevaFechaReanudacion: 2000-01-23
+      properties:
+        estadoProduccion:
+          type: string
+        nuevaFechaReanudacion:
+          format: date
+          type: string
+      type: object
+    VentaRequest:
+      example:
+        clienteId: 1
+        vehiculoId: "VIN00000000000001"
+        precioTotal: 35000.00
+      properties:
+        vehiculoId:
+          type: string
+        clienteId:
+          oneOf:
+            - type: integer
+            - type: string
+        precioTotal:
+          type: number
+      type: object
+    VentaResponse:
+      example:
+        estado: estado
+        ventaId: ventaId
+      properties:
+        ventaId:
+          type: string
+        estado:
+          type: string
+      type: object
+    FacturaRequest:
+      example:
+        ventaId: 1
+        importe: 35000.00
+      properties:
+        ventaId:
+          oneOf:
+            - type: integer
+            - type: string
+        importe:
+          type: number
+      type: object
+    FacturaResponse:
+      example:
+        estado: estado
+        facturaId: facturaId
+      properties:
+        facturaId:
+          type: string
+        estado:
+          type: string
+      type: object
+    PagoRequest:
+      example:
+        facturaId: 1
+        cantidad: 35000.00
+      properties:
+        facturaId:
+          oneOf:
+            - type: integer
+            - type: string
+        cantidad:
+          type: number
+      type: object
+    PagoResponse:
+      example:
+        pagoId: pagoId
+        estado: estado
+      properties:
+        pagoId:
+          type: string
+        estado:
+          type: string
+      type: object
+    InventarioUpdateRequest:
+      example:
+        estado: "VENDIDO"
+      properties:
+        estado:
+          type: string
+      type: object
+    GarantiaRequest:
+      example:
+        vehiculoId: "VIN00000000000001"
+        ventaId: 1
+        duracionMeses: 24
+      properties:
+        vehiculoId:
+          type: string
+        ventaId:
+          oneOf:
+            - type: integer
+            - type: string
+        duracionMeses:
+          type: integer
+      type: object
+    GarantiaResponse:
+      example:
+        estado: estado
+        garantiaId: garantiaId
+      properties:
+        garantiaId:
+          type: string
+        estado:
+          type: string
+      type: object

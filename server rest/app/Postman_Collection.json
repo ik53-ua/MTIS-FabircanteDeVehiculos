@@ -1,0 +1,541 @@
+{
+  "info": {
+    "_postman_id": "fabricante-vehiculos-api",
+    "name": "Fabricante de Vehículos API",
+    "description": "Colección completa para probar la API REST unificada del fabricante de vehículos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 Autenticación",
+      "item": [
+        {
+          "name": "WSKey disponibles en BD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hello",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hello"]
+            },
+            "description": "WSKey válidos en la base de datos (tabla RestKey):\n- '1234'\n- 'admin-rest-key'\n\nUsa cualquiera de estos en el header 'x-api-key' para autenticarte"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ GET - Componentes (Proceso 2.4)",
+      "item": [
+        {
+          "name": "Obtener componente por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/componentes/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "componentes", "1"]
+            },
+            "description": "Obtener detalles de un componente\n\nComponentes disponibles:\n- ID 1: Motor Diesel 2.0 (4500€)\n- ID 2: Batería Principal 150kW (6200€)\n- ID 3: Motor Gasolina 1.8 (3800€)\n- ID 4: Motor Diesel 3.0 (5500€)\n- ID 5: Chasis SUV (3200€)\n- ID 6: Chasis Urbano (2100€)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ GET - Inventario Componentes (Proceso 2.4)",
+      "item": [
+        {
+          "name": "Obtener inventario de componente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/inventario/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "inventario", "1"]
+            },
+            "description": "Obtener stock actual de un componente\n\nIntenta con IDs: 1, 2 (bajo stock), 3, 4, 5, 6 (bajo stock)\n\nNota: IDs 2 y 6 están por debajo del umbral mínimo (5 y 5 respectivamente)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ GET - Proveedores (Proceso 2.4)",
+      "item": [
+        {
+          "name": "Obtener proveedor por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/proveedores/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "proveedores", "1"]
+            },
+            "description": "Obtener información de un proveedor\n\nProveedores disponibles:\n- ID 1: Recambios García (961000111)\n- ID 2: Componentes Tech (962000222)\n- ID 3: AutoParts Global (963000333)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⏳ POST - Crear Pedido de Compra (Proceso 2.4)",
+      "item": [
+        {
+          "name": "Crear pedido de compra",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"componenteId\": 2,\n  \"cantidadRequerida\": 10\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/pedidosCompra",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "pedidosCompra"]
+            },
+            "description": "Crear un nuevo pedido de compra\n\nCampos requeridos:\n- componenteId (INT): ID del componente\n- cantidadRequerida (INT): Cantidad a solicitar\n\nEjemplos:\n1. {\"componenteId\": 2, \"cantidadRequerida\": 10}\n2. {\"componenteId\": 6, \"cantidadRequerida\": 5}"
+          }
+        },
+        {
+          "name": "Obtener pedido de compra",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/pedidosCompra/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "pedidosCompra", "1"]
+            },
+            "description": "Obtener detalles de un pedido de compra existente"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⏳ POST - Ventas (Proceso 2.5)",
+      "item": [
+        {
+          "name": "Registrar nueva venta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": 1,\n  \"concesionarioId\": 1,\n  \"vin\": \"VIN00000000000001\",\n  \"precioFinal\": 35000.00\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/registrar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "registrar"]
+            },
+            "description": "Registrar una nueva venta de vehículo\n\nCampos requeridos:\n- clienteId (INT): ID del cliente\n- concesionarioId (INT): ID del concesionario\n- vin (VARCHAR): VIN del vehículo\n- precioFinal (DECIMAL): Precio final de la venta\n\nVehículos disponibles:\n- VIN00000000000001: SUV X-Treme (Rojo)\n- VIN00000000000002: EcoCity (Blanco)\n- VIN00000000000003: SUV X-Treme (Negro)"
+          }
+        },
+        {
+          "name": "Obtener venta por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "1"]
+            },
+            "description": "Obtener detalles de una venta existente"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⏳ POST - Facturas (Proceso 2.5)",
+      "item": [
+        {
+          "name": "Generar factura",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ventaId\": 1,\n  \"importe\": 35000.00\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/facturas",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "facturas"]
+            },
+            "description": "Generar una factura para una venta\n\nCampos requeridos:\n- ventaId (INT): ID de la venta\n- importe (DECIMAL): Monto a facturar (opcional, si no se proporciona usa precio_final de la venta)"
+          }
+        },
+        {
+          "name": "Obtener factura por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/facturas/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "facturas", "1"]
+            },
+            "description": "Obtener detalles de una factura"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⏳ POST - Pagos (Proceso 2.5)",
+      "item": [
+        {
+          "name": "Registrar pago",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"facturaId\": 1,\n  \"monto\": 35000.00,\n  \"metodoPago\": \"Transferencia bancaria\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/pagos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "pagos"]
+            },
+            "description": "Registrar un pago para una factura\n\nCampos requeridos:\n- facturaId (INT): ID de la factura\n- monto (DECIMAL): Cantidad a pagar\n- metodoPago (VARCHAR): Método de pago (Transferencia, Tarjeta, etc.)\n\nNota: Si monto = total de factura, actualiza estado a 'PAGADA'"
+          }
+        },
+        {
+          "name": "Obtener pago por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/pagos/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "pagos", "1"]
+            },
+            "description": "Obtener detalles de un pago"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⏳ POST - Garantías (Proceso 2.5)",
+      "item": [
+        {
+          "name": "Activar garantía",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vin\": \"VIN00000000000001\",\n  \"ventaId\": 1,\n  \"duracionMeses\": 24,\n  \"tipoCobertura\": \"Cobertura completa\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/garantias",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "garantias"]
+            },
+            "description": "Activar una garantía para un vehículo vendido\n\nCampos requeridos:\n- vin (VARCHAR): VIN del vehículo\n- ventaId (INT): ID de la venta\n- duracionMeses (INT): Duración en meses (default=24)\n- tipoCobertura (VARCHAR): Tipo de garantía"
+          }
+        },
+        {
+          "name": "Obtener garantía por VIN",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/garantias/VIN00000000000001",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "garantias", "VIN00000000000001"]
+            },
+            "description": "Obtener la garantía activa de un vehículo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⏳ PUT - Inventario Vehículos (Proceso 2.5)",
+      "item": [
+        {
+          "name": "Actualizar estado de vehículo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"RESERVADO\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/inventario/VIN00000000000001",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "inventario", "VIN00000000000001"]
+            },
+            "description": "Actualizar el estado de un vehículo en inventario\n\nEstados válidos:\n- EN_FABRICACION\n- STOCK_FABRICANTE\n- STOCK_CONCESIONARIO\n- RESERVADO\n- VENDIDO"
+          }
+        },
+        {
+          "name": "Obtener estado de vehículo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/ventas/inventario/VIN00000000000001",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "ventas", "inventario", "VIN00000000000001"]
+            },
+            "description": "Obtener el estado actual de un vehículo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⏳ PUT - Planificación de Producción (Proceso 2.4)",
+      "item": [
+        {
+          "name": "Actualizar planificación",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estadoProduccion\": \"EN_PRODUCCION\",\n  \"nuevaFechaReanudacion\": \"2024-06-15\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/planificacionProduccion/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "planificacionProduccion", "1"]
+            },
+            "description": "Actualizar estado de planificación de producción\n\nCampos opcionales:\n- estadoProduccion: Estado de producción (PLANIFICADO, EN_PRODUCCION, COMPLETADO, PAUSADO)\n- nuevaFechaReanudacion: Fecha de reanudación"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚫 Errores a probar",
+      "item": [
+        {
+          "name": "SIN WSKey - debe devolver 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/componentes/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "componentes", "1"]
+            },
+            "description": "Esta solicitud debe fallar porque no incluye el header x-api-key\n\nRespuesta esperada:\n- Código: 401\n- Mensaje: 'Unauthorized - WSKey requerido en header x-api-key'"
+          }
+        },
+        {
+          "name": "WSKey inválido - debe devolver 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "wskey-invalido-xyz",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/componentes/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "componentes", "1"]
+            },
+            "description": "Esta solicitud debe fallar porque el WSKey no existe en la BD\n\nRespuesta esperada:\n- Código: 403\n- Mensaje: 'Forbidden - WSKey inválido'"
+          }
+        },
+        {
+          "name": "Componente no existe - debe devolver 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "1234",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/produccion/componentes/999",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "produccion", "componentes", "999"]
+            },
+            "description": "Esta solicitud debe fallar porque el componente ID 999 no existe\n\nRespuesta esperada:\n- Código: 404\n- Mensaje: 'Componente 999 no encontrado'"
+          }
+        }
+      ]
+    }
+  ]
+}
