@@ -152,7 +152,7 @@ output application/json
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
                 <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
             </ee:variables>
         </ee:transform>
         <db:select doc:name="Validar WSKey" config-ref="Database_Config">
@@ -200,7 +200,7 @@ else
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
                 <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
             </ee:variables>
         </ee:transform>
         <db:select doc:name="Validar WSKey" config-ref="Database_Config">
@@ -248,7 +248,7 @@ else
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
                 <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
             </ee:variables>
         </ee:transform>
         <db:select doc:name="Validar WSKey" config-ref="Database_Config">
@@ -296,7 +296,7 @@ else
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
                 <ee:set-variable variableName="vehiculoId">attributes.uriParams.'vehiculoId'</ee:set-variable>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
             </ee:variables>
         </ee:transform>
         <db:select doc:name="Validar WSKey" config-ref="Database_Config">
@@ -344,7 +344,7 @@ else
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
                 <ee:set-variable variableName="vehiculoId">attributes.uriParams.'vehiculoId'</ee:set-variable>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
             </ee:variables>
         </ee:transform>
         <db:select doc:name="Validar WSKey" config-ref="Database_Config">
@@ -392,7 +392,7 @@ else
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
                 <ee:set-variable variableName="vehiculoId">attributes.uriParams.'vehiculoId'</ee:set-variable>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
                 <ee:set-variable variableName="requestBody">payload</ee:set-variable>
             </ee:variables>
         </ee:transform>
@@ -440,7 +440,7 @@ output application/json
     <flow name="post:\facturas:application\json:Proceso2_5-config">
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
                 <ee:set-variable variableName="ventaId">payload.ventaId</ee:set-variable>
                 <ee:set-variable variableName="importe">payload.importe</ee:set-variable>
             </ee:variables>
@@ -492,7 +492,7 @@ output application/json
     <flow name="post:\pagos:application\json:Proceso2_5-config">
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
                 <ee:set-variable variableName="facturaId">payload.facturaId</ee:set-variable>
                 <ee:set-variable variableName="cantidad">payload.cantidad</ee:set-variable>
             </ee:variables>
@@ -548,7 +548,7 @@ output application/json
     <flow name="post:\garantias:application\json:Proceso2_5-config">
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
                 <ee:set-variable variableName="vehiculoId">payload.vehiculoId</ee:set-variable>
                 <ee:set-variable variableName="duracionMeses">payload.duracionMeses</ee:set-variable>
             </ee:variables>
@@ -605,7 +605,7 @@ output application/json
         <!-- 1. Extraer parametros de entrada -->
         <ee:transform doc:name="Extraer parametros">
             <ee:variables>
-                <ee:set-variable variableName="wsKey">attributes.queryParams.'WSKey'</ee:set-variable>
+                <ee:set-variable variableName="wsKey">attributes.headers.'x-api-key'</ee:set-variable>
                 <ee:set-variable variableName="vehiculoId">payload.vehiculoId</ee:set-variable>
                 <ee:set-variable variableName="clienteId">payload.clienteId</ee:set-variable>
                 <ee:set-variable variableName="precioTotal">payload.precioTotal</ee:set-variable>
