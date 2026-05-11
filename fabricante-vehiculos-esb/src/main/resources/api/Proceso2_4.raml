@@ -78,7 +78,7 @@ types:
 /pedidosCompra:
   post:
     description: Crear orden de compra automática. Orquestador del proceso.
-    queryParameters:
+    headers:
       WSKey:
         type: string
         required: true
@@ -99,7 +99,7 @@ types:
   /{id}:
     get:
       description: Consultar orden de compra.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -118,7 +118,7 @@ types:
   /{componenteId}:
     get:
       description: Consultar stock de un componente.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -137,7 +137,7 @@ types:
   /{id}:
     get:
       description: Obtener información del componente.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -156,7 +156,7 @@ types:
   /{id}:
     get:
       description: Consultar datos del proveedor.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -175,7 +175,7 @@ types:
   /{id}:
     put:
       description: Actualizar planificación de producción.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
