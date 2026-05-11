@@ -513,24 +513,25 @@ output application/json
 
                         <!-- 6. ORQUESTACIÓN: Crear la orden de compra en BD -->
                         <db:insert doc:name="PASO 4 - Crear pedido de compra" config-ref="Database_Config">
-                            <db:sql>INSERT INTO PedidoCompra (id_componente, id_proveedor, cantidad_solicitada, coste_total_estimado, estado, fecha_entrega_estimada) VALUES (:componenteId, :proveedorId, :cantidad, :coste, 'PENDIENTE', DATE_ADD(NOW(), INTERVAL 7 DAY))</db:sql>
-                            <db:input-parameters><![CDATA[#[{
-  'componenteId': vars.componenteId,
-  'proveedorId': vars.proveedorId,
-  'cantidad': vars.cantidadRequerida,
-  'coste': vars.precioUnitario * vars.cantidadRequerida
-}]]]></db:input-parameters>
-                        </db:insert>
-
-                        <!-- 7. Obtener el ID del pedido recién creado -->
-                        <db:select doc:name="Obtener ID pedido creado" config-ref="Database_Config">
-                            <db:sql>SELECT LAST_INSERT_ID() AS pedidoId</db:sql>
-                        </db:select>
-                        <ee:transform doc:name="Guardar pedidoId">
-                            <ee:variables>
-                                <ee:set-variable variableName="pedidoId">payload[0].pedidoId</ee:set-variable>
-                            </ee:variables>
-                        </ee:transform>
+						    <db:sql>INSERT INTO PedidoCompra (id_componente, id_proveedor, cantidad_solicitada, coste_total_estimado, estado, fecha_entrega_estimada) VALUES (:componenteId, :proveedorId, :cantidad, :coste, 'PENDIENTE', DATE_ADD(NOW(), INTERVAL 7 DAY))</db:sql>
+						    <db:input-parameters><![CDATA[#[{
+						  'componenteId': vars.componenteId,
+						  'proveedorId': vars.proveedorId,
+						  'cantidad': vars.cantidadRequerida,
+						  'coste': vars.precioUnitario * vars.cantidadRequerida
+						}]]]></db:input-parameters>
+						</db:insert>
+						
+						<!-- 7. Obtener el ID del pedido recién creado -->
+						<db:select doc:name="Obtener ID pedido creado" config-ref="Database_Config">
+						    <db:sql>SELECT MAX(id_pedido_compra) AS pedidoId FROM PedidoCompra WHERE id_componente = :componenteId</db:sql>
+						    <db:input-parameters><![CDATA[#[{'componenteId': vars.componenteId}]]]></db:input-parameters>
+						</db:select>
+						<ee:transform doc:name="Guardar pedidoId">
+						    <ee:variables>
+						        <ee:set-variable variableName="pedidoId">payload[0].pedidoId as Number</ee:set-variable>
+						    </ee:variables>
+						</ee:transform>
 
                         <!-- 8. ORQUESTACIÓN: Actualizar planificación de producción -->
                         <db:update doc:name="PASO 5 - Actualizar planificacion" config-ref="Database_Config">
