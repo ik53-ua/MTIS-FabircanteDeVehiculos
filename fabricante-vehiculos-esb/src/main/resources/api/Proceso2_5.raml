@@ -105,7 +105,7 @@ types:
 /ventas:
   post:
     description: Registrar venta del vehículo. Orquestador del proceso.
-    queryParameters:
+    headers:
       WSKey:
         type: string
         required: true
@@ -124,7 +124,7 @@ types:
   /{id}:
     get:
       description: Consultar venta.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -141,7 +141,7 @@ types:
 /facturas:
   post:
     description: Generar factura.
-    queryParameters:
+    headers:
       WSKey:
         type: string
         required: true
@@ -160,7 +160,7 @@ types:
   /{id}:
     get:
       description: Consultar factura.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -177,7 +177,7 @@ types:
 /pagos:
   post:
     description: Registrar pago.
-    queryParameters:
+    headers:
       WSKey:
         type: string
         required: true
@@ -196,7 +196,7 @@ types:
   /{id}:
     get:
       description: Consultar pago.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -214,7 +214,7 @@ types:
   /{vehiculoId}:
     get:
       description: Consultar inventario del vehículo.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -229,7 +229,7 @@ types:
               type: RespuestaBase
     put:
       description: Actualizar estado del vehículo.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
@@ -249,7 +249,7 @@ types:
 /garantias:
   post:
     description: Activar garantía.
-    queryParameters:
+    headers:
       WSKey:
         type: string
         required: true
@@ -268,7 +268,7 @@ types:
   /{vehiculoId}:
     get:
       description: Consultar garantía.
-      queryParameters:
+      headers:
         WSKey:
           type: string
           required: true
