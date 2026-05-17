@@ -1,0 +1,275 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f6f8;
+  --panel: #ffffff;
+  --ink: #17202a;
+  --muted: #667085;
+  --line: #d8dee6;
+  --accent: #246b5a;
+  --accent-strong: #16483d;
+  --danger: #b42318;
+  --ok: #067647;
+  --code: #101828;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 28px;
+  background: #12352e;
+  color: #fff;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.app-header p {
+  margin-top: 4px;
+  color: #cddbd7;
+}
+
+.status-pill {
+  min-width: 112px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.shell {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 24px auto;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tab,
+button,
+select,
+input,
+textarea {
+  font: inherit;
+}
+
+.tab,
+button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.tab {
+  padding: 10px 18px;
+  font-weight: 700;
+}
+
+.tab.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.panel {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+
+.panel + .panel {
+  margin-top: 16px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.7fr 1.4fr 0.42fr;
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 10px;
+  background: #fff;
+  color: var(--ink);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  outline: 2px solid rgba(36, 107, 90, 0.22);
+  outline-offset: 1px;
+}
+
+.request-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fafc;
+  overflow: auto;
+}
+
+#method-badge {
+  min-width: 56px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: #dbeafe;
+  color: #1e3a8a;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+code,
+pre,
+textarea {
+  font-family: Consolas, Monaco, "Courier New", monospace;
+}
+
+code {
+  white-space: nowrap;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 18px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 16px;
+}
+
+.section-title button,
+.actions button {
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
+.params {
+  display: grid;
+  gap: 10px;
+}
+
+textarea {
+  min-height: 260px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.primary:hover {
+  background: var(--accent-strong);
+}
+
+#request-hint,
+#response-meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.response-panel pre {
+  min-height: 260px;
+  max-height: 520px;
+  margin: 0;
+  padding: 14px;
+  overflow: auto;
+  border-radius: 6px;
+  background: var(--code);
+  color: #f8fafc;
+  line-height: 1.45;
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.error {
+  color: var(--danger);
+}
+
+@media (max-width: 860px) {
+  .app-header,
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .controls-grid,
+  .editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    overflow-x: auto;
+  }
+}

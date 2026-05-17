@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cliente de Pruebas - Fabricante de Vehiculos</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>Cliente de Pruebas</h1>
+        <p>REST, SOAP y MuleSoft para Fabricante de Vehiculos</p>
+      </div>
+    </header>
+
+    <main class="shell">
+      <nav class="tabs" aria-label="Proyectos">
+        <button class="tab active" data-tab="rest" type="button">REST</button>
+        <button class="tab" data-tab="soap" type="button">SOAP</button>
+        <button class="tab" data-tab="mule" type="button">MULESOFT</button>
+      </nav>
+
+      <section class="panel">
+        <div class="controls-grid">
+          <label>
+            URL base
+            <input id="base-url" type="url" spellcheck="false">
+          </label>
+          <label>
+            WSKey / x-api-key
+            <input id="api-key" type="text" value="1234" spellcheck="false">
+          </label>
+          <label>
+            Operacion
+            <select id="operation"></select>
+          </label>
+          <label>
+            Metodo
+            <input id="method" type="text" readonly>
+          </label>
+        </div>
+
+        <div class="request-line">
+          <span id="method-badge">GET</span>
+          <code id="final-url"></code>
+        </div>
+
+        <div class="editor-grid">
+          <section>
+            <div class="section-title">
+              <h2>Parametros</h2>
+              <button id="reset-operation" type="button">Restablecer</button>
+            </div>
+            <div id="params" class="params"></div>
+          </section>
+
+          <section>
+            <div class="section-title">
+              <h2>Body</h2>
+              <button id="format-body" type="button">Formatear</button>
+            </div>
+            <textarea id="body" spellcheck="false"></textarea>
+          </section>
+        </div>
+
+        <div class="actions">
+          <button id="send" class="primary" type="button">Enviar peticion</button>
+          <button id="copy-curl" type="button">Copiar cURL</button>
+          <span id="request-hint"></span>
+        </div>
+      </section>
+
+      <section class="panel response-panel">
+        <div class="section-title">
+          <h2>Respuesta</h2>
+          <div id="response-meta"></div>
+        </div>
+        <pre id="response">Selecciona una operacion y pulsa "Enviar peticion".</pre>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
