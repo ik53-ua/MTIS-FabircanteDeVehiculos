@@ -36,7 +36,7 @@ const restOperations = [
     method: "PUT",
     path: "/produccion/planificacionProduccion/{id}",
     params: { id: "1" },
-    body: { estadoProduccion: "PAUSADA", nuevaFechaReanudacion: "2026-05-20" },
+    body: { estadoProduccion: "PAUSADO", nuevaFechaReanudacion: "2026-05-20" },
   },
   {
     label: "Ventas - Registrar venta",
@@ -101,111 +101,6 @@ const restOperations = [
   },
 ];
 
-const muleOperations = [
-  {
-    label: "Proceso 2.1 - Reserva vehiculo",
-    method: "POST",
-    path: "/api/soap/reservaVehiculo",
-    body: {
-      WSKey: DEFAULT_KEY,
-      idConcesionario: 1,
-      idModelo: 1,
-      idCliente: 1,
-      configuracion: "Color: Azul; Motor: Hibrido",
-    },
-  },
-  {
-    label: "Proceso 2.2 - Pedido fabricacion",
-    method: "POST",
-    path: "/api/soap/pedidoFabricacion",
-    body: {
-      WSKey: DEFAULT_KEY,
-      idConcesionario: 1,
-      idModelo: 1,
-      configuracion: "Color: Negro; Motor: Electrico",
-    },
-  },
-  {
-    label: "Proceso 2.3 - Solicitud repuestos",
-    method: "POST",
-    path: "/api/soap/solicitudRepuestos",
-    body: {
-      WSKey: DEFAULT_KEY,
-      idConcesionario: 1,
-      diagnostico: "Sustitucion preventiva",
-      listaPiezasRequeridas: "Filtro aceite, pastillas freno",
-    },
-  },
-  {
-    label: "Produccion - Crear orden de compra",
-    method: "POST",
-    path: "/api/produccion/v1/pedidosCompra",
-    body: { componenteId: "2", cantidadRequerida: 5 },
-  },
-  {
-    label: "Produccion - Consultar stock componente",
-    method: "GET",
-    path: "/api/produccion/v1/inventario/{componenteId}",
-    params: { componenteId: "2" },
-  },
-  {
-    label: "Produccion - Obtener componente",
-    method: "GET",
-    path: "/api/produccion/v1/componentes/{id}",
-    params: { id: "1" },
-  },
-  {
-    label: "Produccion - Consultar proveedor",
-    method: "GET",
-    path: "/api/produccion/v1/proveedores/{id}",
-    params: { id: "2" },
-  },
-  {
-    label: "Produccion - Consultar orden compra",
-    method: "GET",
-    path: "/api/produccion/v1/pedidosCompra/{id}",
-    params: { id: "1" },
-  },
-  {
-    label: "Produccion - Actualizar planificacion",
-    method: "PUT",
-    path: "/api/produccion/v1/planificacionProduccion/{id}",
-    params: { id: "1" },
-    body: { estadoProduccion: "PAUSADA", nuevaFechaReanudacion: "2026-05-20" },
-  },
-  {
-    label: "Ventas - Registrar venta",
-    method: "POST",
-    path: "/api/ventas/v1/ventas",
-    body: { vehiculoId: "VIN00000000000001", clienteId: "1", precioTotal: 35000 },
-  },
-  {
-    label: "Ventas - Consultar venta",
-    method: "GET",
-    path: "/api/ventas/v1/ventas/{id}",
-    params: { id: "1" },
-  },
-  {
-    label: "Ventas - Generar factura",
-    method: "POST",
-    path: "/api/ventas/v1/facturas",
-    body: { ventaId: "1", importe: 35000 },
-  },
-  {
-    label: "Ventas - Registrar pago",
-    method: "POST",
-    path: "/api/ventas/v1/pagos",
-    body: { facturaId: "1", cantidad: 35000 },
-  },
-  {
-    label: "Ventas - Actualizar estado vehiculo",
-    method: "PUT",
-    path: "/api/ventas/v1/inventario/{vehiculoId}",
-    params: { vehiculoId: "VIN00000000000001" },
-    body: { estadoVehiculo: "VENDIDO" },
-  },
-];
-
 const soapOperations = [
   {
     label: "Proceso reserva vehiculo",
@@ -229,7 +124,7 @@ const soapOperations = [
       WSKey: DEFAULT_KEY,
       idConcesionario: 1,
       idModelo: 1,
-      configuracion: "Color: Negro; Motor: Electrico",
+      configuracion: "DIESEL_MANUAL_ROJO",
     }),
   },
   {
@@ -241,8 +136,256 @@ const soapOperations = [
       WSKey: DEFAULT_KEY,
       idConcesionario: 1,
       diagnostico: "Sustitucion preventiva",
-      listaPiezasRequeridas: "Filtro aceite, pastillas freno",
+      listaPiezasRequeridas: "1",
     }),
+  },
+];
+
+const flowDefinitions = [
+  {
+    title: "Consulta y Reserva de Vehículos en Stock",
+    image: "assets/flows/Consulta y reserva.png",
+    imageAlt: "Diagrama del flujo Consulta y Reserva de Vehículos en Stock",
+    endpoints: [
+      {
+        type: "MULE",
+        method: "POST",
+        url: "http://localhost:8081/api/soap/reservaVehiculo",
+        role: "Principal",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockConcesionario",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockFabricante",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockRed",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioReservaVehiculo",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioRegistroReservas",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioNotificaciones",
+        role: "Interno",
+      },
+    ],
+    fields: [
+      { name: "WSKey", label: "WSKey", value: DEFAULT_KEY },
+      { name: "idConcesionario", label: "ID concesionario", value: "2", valueType: "number" },
+      { name: "idModelo", label: "ID modelo", value: "2", valueType: "number" },
+      { name: "idCliente", label: "ID cliente", value: "1", valueType: "number" },
+      { name: "configuracion", label: "Configuracion", value: "ELECTRICO_AUTO_BLANCO", multiline: true },
+    ],
+  },
+  {
+    title: "Pedido de Fabricación a Medida",
+    image: "assets/flows/Fabricacion a medida.png",
+    imageAlt: "Diagrama del flujo Fabricación a Medida",
+    endpoints: [
+      {
+        type: "MULE",
+        method: "POST",
+        url: "http://localhost:8081/api/soap/pedidoFabricacion",
+        role: "Principal",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioConfiguracionesVehiculo",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioPlanificacionProduccion",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioCalculoCostes",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioGeneracionOrdenProduccion",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioRegistroPedidos",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioNotificacionesPedido",
+        role: "Interno",
+      },
+    ],
+    fields: [
+      { name: "WSKey", label: "WSKey", value: DEFAULT_KEY },
+      { name: "idConcesionario", label: "ID concesionario", value: "1", valueType: "number" },
+      { name: "idModelo", label: "ID modelo", value: "1", valueType: "number" },
+      { name: "configuracion", label: "Configuracion del vehiculo personalizado", value: "DIESEL_MANUAL_ROJO", multiline: true },
+    ],
+  },
+  {
+    title: "Solicitud de Piezas para Mantenimiento",
+    image: "assets/flows/Piezas mantenimiento.png",
+    imageAlt: "Diagrama del flujo Solicitud de Piezas para Mantenimiento",
+    endpoints: [
+      {
+        type: "MULE",
+        method: "POST",
+        url: "http://localhost:8081/api/soap/solicitudRepuestos",
+        role: "Principal",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioCatalogoPiezas",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioStockRepuestos",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioPedidosRepuestos",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioLogisticaEnvios",
+        role: "Interno",
+      },
+      {
+        type: "SOAP",
+        method: "POST",
+        url: "http://localhost:8080/FabricanteDeVehiculos/services/ServicioNotificacionesEntrega",
+        role: "Interno",
+      },
+    ],
+    fields: [
+      { name: "WSKey", label: "WSKey", value: DEFAULT_KEY },
+      { name: "idConcesionario", label: "ID concesionario", value: "1", valueType: "number" },
+      { name: "idPieza", label: "ID pieza", value: "1", valueType: "number" },
+      { name: "cantidad", label: "Cantidad requerida", value: "2", valueType: "number" },
+    ],
+  },
+  {
+    title: "Reabastecimiento Automático de Componentes",
+    image: "assets/flows/Reabastecimiento automático.png",
+    imageAlt: "Diagrama del flujo Reabastecimiento Automático de Componentes",
+    endpoints: [
+      {
+        type: "MULE",
+        method: "POST",
+        url: "http://localhost:8081/api/produccion/v1/pedidosCompra",
+        role: "Principal",
+      },
+      {
+        type: "REST",
+        method: "GET",
+        url: "http://localhost:8081/api/produccion/v1/inventario/{componenteId}",
+        role: "Interno",
+      },
+      {
+        type: "REST",
+        method: "GET",
+        url: "http://localhost:8081/api/produccion/v1/componentes/{componenteId}",
+        role: "Interno",
+      },
+      {
+        type: "REST",
+        method: "GET",
+        url: "http://localhost:8081/api/produccion/v1/proveedores/{proveedorId}",
+        role: "Interno",
+      },
+      {
+        type: "REST",
+        method: "PUT",
+        url: "http://localhost:8081/api/produccion/v1/planificacionProduccion/{planificacionId}",
+        role: "Interno",
+      },
+    ],
+    fields: [
+      { name: "x-api-key", label: "x-api-key", value: DEFAULT_KEY, headerName: "x-api-key" },
+      { name: "componenteId", label: "ID componente", value: "2" },
+      { name: "cantidadRequerida", label: "Cantidad requerida", value: "5", valueType: "number" },
+    ],
+  },
+  {
+    title: "Registro y Cierre de Venta Final",
+    image: "assets/flows/Registro de venta final.png",
+    imageAlt: "Diagrama del flujo Registro y Cierre de Venta Final",
+    endpoints: [
+      {
+        type: "MULE",
+        method: "POST",
+        url: "http://localhost:8081/api/ventas/v1/ventas",
+        role: "Principal",
+      },
+      {
+        type: "REST",
+        method: "POST",
+        url: "http://localhost:8081/api/ventas/v1/facturas",
+        role: "Interno",
+      },
+      {
+        type: "REST",
+        method: "POST",
+        url: "http://localhost:8081/api/ventas/v1/pagos",
+        role: "Interno",
+      },
+      {
+        type: "REST",
+        method: "PUT",
+        url: "http://localhost:8081/api/ventas/v1/inventario/{vehiculoId}",
+        role: "Interno",
+      },
+      {
+        type: "REST",
+        method: "POST",
+        url: "http://localhost:8081/api/ventas/v1/garantias",
+        role: "Interno",
+      },
+    ],
+    fields: [
+      { name: "vehiculoId", label: "VIN vehiculo", value: "VIN00000000000001" },
+      { name: "x-api-key", label: "x-api-key", value: DEFAULT_KEY, headerName: "x-api-key" },
+      { name: "clienteId", label: "ID cliente", value: "1" },
+      { name: "precioTotal", label: "Precio total", value: "35000", valueType: "number" },
+    ],
   },
 ];
 
@@ -257,20 +400,17 @@ const tabs = {
     hint: "SOAP envia WSKey dentro del XML y SOAPAction en cabecera.",
     operations: soapOperations,
   },
-  mule: {
-    baseUrl: "http://localhost:8081",
-    hint: "MuleSoft usa x-api-key para las APIs RAML y JSON con WSKey en procesos SOAP orquestados.",
-    operations: muleOperations,
-  },
 };
 
 const state = {
-  tab: "rest",
+  tab: "flows",
   opIndex: 0,
 };
 
 const el = {
   tabs: document.querySelectorAll(".tab"),
+  flowsPanel: document.querySelector("#flows-panel"),
+  endpointPanels: document.querySelectorAll(".endpoint-panel"),
   baseUrl: document.querySelector("#base-url"),
   apiKey: document.querySelector("#api-key"),
   operation: document.querySelector("#operation"),
@@ -322,6 +462,13 @@ function activeOperation() {
 }
 
 function renderTab() {
+  renderActiveView();
+
+  if (state.tab === "flows") {
+    renderFlows();
+    return;
+  }
+
   const config = activeConfig();
   el.baseUrl.value = config.baseUrl;
   el.hint.textContent = config.hint;
@@ -336,6 +483,221 @@ function renderTab() {
 
   state.opIndex = 0;
   renderOperation();
+}
+
+function renderActiveView() {
+  const isFlows = state.tab === "flows";
+  el.flowsPanel.hidden = !isFlows;
+  el.endpointPanels.forEach((panel) => {
+    panel.hidden = isFlows;
+  });
+}
+
+function renderFlows() {
+  el.flowsPanel.innerHTML = "";
+
+  flowDefinitions.forEach((flow) => {
+    const article = document.createElement("article");
+    article.className = "panel flow-card";
+
+    const header = document.createElement("div");
+    header.className = "flow-header";
+
+    const title = document.createElement("h2");
+    title.textContent = flow.title;
+    header.appendChild(title);
+    article.appendChild(header);
+
+    const imageFrame = document.createElement("figure");
+    imageFrame.className = "flow-image-frame";
+
+    const image = document.createElement("img");
+    image.className = "flow-image";
+    image.src = flow.image;
+    image.alt = flow.imageAlt;
+    image.loading = "lazy";
+
+    const imageNote = document.createElement("figcaption");
+    imageNote.className = "flow-image-note";
+    imageNote.textContent = `Imagen pendiente: guarda el archivo en ${flow.image}`;
+
+    image.addEventListener("load", () => {
+      imageNote.hidden = true;
+    });
+    image.addEventListener("error", () => {
+      image.hidden = true;
+      imageNote.hidden = false;
+    });
+
+    imageFrame.appendChild(image);
+    imageFrame.appendChild(imageNote);
+    article.appendChild(imageFrame);
+
+    const content = document.createElement("div");
+    content.className = "flow-content";
+
+    const endpointsSection = document.createElement("section");
+    const endpointsTitle = document.createElement("h3");
+    endpointsTitle.textContent = "Endpoints llamados en orden";
+    endpointsSection.appendChild(endpointsTitle);
+
+    const endpoints = document.createElement("ol");
+    endpoints.className = "endpoint-list";
+
+    flow.endpoints.forEach((endpoint) => {
+      const item = document.createElement("li");
+
+      const meta = document.createElement("div");
+      meta.className = "endpoint-meta";
+
+      const type = document.createElement("span");
+      type.className = `endpoint-type endpoint-type-${endpoint.type.toLowerCase()}`;
+      type.textContent = endpoint.type;
+      meta.appendChild(type);
+
+      const role = document.createElement("span");
+      role.className = `endpoint-role endpoint-role-${endpoint.role === "Principal" ? "primary" : "internal"}`;
+      role.textContent = endpoint.role || "Interno";
+      meta.appendChild(role);
+
+      const method = document.createElement("span");
+      method.className = "endpoint-method";
+      method.textContent = endpoint.method;
+      meta.appendChild(method);
+
+      const url = document.createElement("code");
+      url.textContent = endpoint.url;
+
+      item.appendChild(meta);
+      item.appendChild(url);
+      endpoints.appendChild(item);
+    });
+
+    endpointsSection.appendChild(endpoints);
+    content.appendChild(endpointsSection);
+
+    const dataSection = document.createElement("section");
+    const dataTitle = document.createElement("h3");
+    dataTitle.textContent = "Datos del flujo";
+    dataSection.appendChild(dataTitle);
+
+    const fields = document.createElement("div");
+    fields.className = "flow-fields";
+
+    flow.fields.forEach((field) => {
+      const label = document.createElement("label");
+      label.textContent = field.label;
+
+      const input = field.multiline ? document.createElement("textarea") : document.createElement("input");
+      input.name = field.name;
+      input.value = field.value;
+      input.spellcheck = false;
+
+      if (field.multiline) {
+        input.rows = 3;
+      }
+
+      label.appendChild(input);
+      fields.appendChild(label);
+    });
+
+    dataSection.appendChild(fields);
+
+    const actions = document.createElement("div");
+    actions.className = "flow-actions";
+
+    const sendButton = document.createElement("button");
+    sendButton.className = "primary";
+    sendButton.type = "button";
+    sendButton.textContent = "Enviar peticion";
+    actions.appendChild(sendButton);
+
+    const requestUrl = document.createElement("code");
+    requestUrl.textContent = flow.endpoints[0].url;
+    actions.appendChild(requestUrl);
+
+    const responseMeta = document.createElement("div");
+    responseMeta.className = "flow-response-meta";
+
+    const response = document.createElement("pre");
+    response.className = "flow-response";
+    response.textContent = "Rellena los datos y pulsa \"Enviar peticion\".";
+
+    sendButton.addEventListener("click", () => {
+      sendFlowRequest(flow, fields, sendButton, response, responseMeta);
+    });
+
+    dataSection.appendChild(actions);
+    dataSection.appendChild(responseMeta);
+    dataSection.appendChild(response);
+    content.appendChild(dataSection);
+    article.appendChild(content);
+    el.flowsPanel.appendChild(article);
+  });
+}
+
+function coerceFlowValue(value, field) {
+  if (field.valueType === "number") {
+    return Number(value);
+  }
+
+  return value;
+}
+
+function buildFlowRequest(flow, fieldsContainer) {
+  const headers = { "Content-Type": "application/json" };
+  const body = {};
+
+  flow.fields.forEach((field) => {
+    const input = fieldsContainer.querySelector(`[name="${field.name}"]`);
+    const value = coerceFlowValue(input.value, field);
+
+    if (field.headerName) {
+      const headerValue = String(value).trim();
+      headers[field.headerName] = headerValue;
+
+      if (field.headerName === "x-api-key") {
+        headers.WSKey = headerValue;
+      }
+
+      return;
+    }
+
+    body[field.name] = value;
+  });
+
+  return {
+    method: flow.endpoints[0].method,
+    headers,
+    body: JSON.stringify(body),
+  };
+}
+
+async function sendFlowRequest(flow, fieldsContainer, button, responseEl, metaEl) {
+  const url = flow.endpoints[0].url;
+  const request = buildFlowRequest(flow, fieldsContainer);
+  const startedAt = performance.now();
+
+  button.disabled = true;
+  button.textContent = "Enviando...";
+  responseEl.textContent = "Enviando...";
+  metaEl.textContent = "";
+
+  try {
+    const response = canUseProxy()
+      ? await fetchThroughProxy(url, request)
+      : await fetchDirect(url, request);
+    const elapsed = Math.round(performance.now() - startedAt);
+
+    responseEl.textContent = formatResponse(response.text, response.contentType);
+    metaEl.innerHTML = `<span class="${response.ok ? "ok" : "error"}">${response.status} ${response.statusText}</span> - ${elapsed} ms`;
+  } catch (error) {
+    responseEl.textContent = `${error.name}: ${error.message}`;
+    metaEl.innerHTML = '<span class="error">No se pudo completar la peticion</span>';
+  } finally {
+    button.disabled = false;
+    button.textContent = "Enviar peticion";
+  }
 }
 
 function renderOperation() {
@@ -493,6 +855,10 @@ function formatResponse(text, contentType = "") {
     return "(respuesta vacia)";
   }
 
+  if (contentType.includes("xml") || text.trim().startsWith("<?xml") || text.trim().startsWith("<soap")) {
+    return formatXml(text);
+  }
+
   if (contentType.includes("json")) {
     try {
       return JSON.stringify(JSON.parse(text), null, 2);
@@ -510,6 +876,41 @@ function formatResponse(text, contentType = "") {
   }
 
   return text;
+}
+
+function formatXml(text) {
+  try {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, "application/xml");
+
+    if (xml.querySelector("parsererror")) {
+      return text;
+    }
+
+    const serialized = new XMLSerializer().serializeToString(xml);
+    return serialized
+      .replace(/>\s*</g, ">\n<")
+      .split("\n")
+      .reduce((lines, line) => {
+        const trimmed = line.trim();
+        const decreasesIndent = /^<\//.test(trimmed);
+        const currentIndent = decreasesIndent ? Math.max(lines.indent - 1, 0) : lines.indent;
+
+        lines.output.push(`${"  ".repeat(currentIndent)}${trimmed}`);
+
+        if (/^<[^!?/][^>]*[^/]>$/.test(trimmed) && !trimmed.includes("</")) {
+          lines.indent = currentIndent + 1;
+        } else {
+          lines.indent = currentIndent;
+        }
+
+        return lines;
+      }, { indent: 0, output: [] })
+      .output
+      .join("\n");
+  } catch {
+    return text;
+  }
 }
 
 function setBusy(isBusy) {
